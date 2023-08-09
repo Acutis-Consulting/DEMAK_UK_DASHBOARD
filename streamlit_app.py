@@ -3,7 +3,7 @@ import pandas as pd
 import plost
 import locale
 
-locale.setlocale(locale.LC_ALL, 'deu_deu')
+locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
