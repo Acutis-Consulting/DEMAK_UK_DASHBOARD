@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plost
-import locale
+#import locale
 
-locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+#locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
@@ -252,15 +252,15 @@ with aktiva_label:
     st.subheader("2.2 kurzfristige Forderungen")
     st.subheader("2.3 Zahlungsmittel")
 with aktiva_value:
-    formatted = locale.format_string("%d", anlagevermoegen, grouping=True)
+    formatted = anlagevermoegen #locale.format_string("%d", anlagevermoegen, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", umlaufvermögen, grouping=True)
+    formatted = umlaufvermögen #locale.format_string("%d", umlaufvermögen, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", vorraete, grouping=True)
+    formatted = vorraete #locale.format_string("%d", vorraete, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", kurzfristige_forderungen, grouping=True)
+    formatted = kurzfristige_forderungen #locale.format_string("%d", kurzfristige_forderungen, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", zahlungsmittel, grouping=True)
+    formatted = zahlungsmittel #locale.format_string("%d", zahlungsmittel, grouping=True)
     st.subheader(f"{formatted} €")
 with passiva_label:
     st.subheader("1 Eigenkapital")
@@ -268,13 +268,13 @@ with passiva_label:
     st.subheader("2.1 kurzfristig (FK kurzfr.)")
     st.subheader("2.2 langfristig (FK langfr.)")
 with passiva_value:
-    formatted = locale.format_string("%d", eigenkapital, grouping=True)
+    formatted = eigenkapital #locale.format_string("%d", eigenkapital, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", fremdkapital, grouping=True)
+    formatted = fremdkapital #locale.format_string("%d", fremdkapital, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", fk_kurzfristig, grouping=True)
+    formatted = fk_kurzfristig #locale.format_string("%d", fk_kurzfristig, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", fk_langfristig, grouping=True)
+    formatted = fk_langfristig #locale.format_string("%d", fk_langfristig, grouping=True)
     st.subheader(f"{formatted} €")
 
 st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
@@ -284,12 +284,12 @@ gk_aktiva_label, gk_aktiva_value, gk_passiva_label, gk_passiva_value = st.column
 with gk_aktiva_label:
     st.subheader("Gesamtkapital Aktiva")
 with gk_aktiva_value:
-    formatted = locale.format_string("%d", gesamtkapital_aktiva, grouping=True)
+    formatted = gesamtkapital_aktiva #locale.format_string("%d", gesamtkapital_aktiva, grouping=True)
     st.subheader(f"{formatted} €")
 with gk_passiva_label:
     st.subheader("Gesamtkapital Passiva")
 with gk_passiva_value:
-    formatted = locale.format_string("%d", gesamtkapital_passiva, grouping=True)
+    formatted = gesamtkapital_passiva #locale.format_string("%d", gesamtkapital_passiva, grouping=True)
     st.subheader(f"{formatted} €")
 
 ### avoid dividing by 0 denominator
@@ -427,15 +427,15 @@ with aktiva_label:
     st.subheader("2.2 kurzfristige Forderungen")
     st.subheader("2.3 Zahlungsmittel")
 with aktiva_value:
-    formatted = locale.format_string("%d", anlagevermoegen_2, grouping=True)
+    formatted = anlagevermoegen_2 #locale.format_string("%d", anlagevermoegen_2, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", umlaufvermögen_2, grouping=True)
+    formatted = umlaufvermögen_2 #locale.format_string("%d", umlaufvermögen_2, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", vorraete_2, grouping=True)
+    formatted = vorraete_2 #locale.format_string("%d", vorraete_2, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", kurzfristige_forderungen_2, grouping=True)
+    formatted = kurzfristige_forderungen_2 #locale.format_string("%d", kurzfristige_forderungen_2, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", zahlungsmittel_2, grouping=True)
+    formatted = zahlungsmittel_2 #locale.format_string("%d", zahlungsmittel_2, grouping=True)
     st.subheader(f"{formatted} €")
 with passiva_label:
     st.subheader("1 Eigenkapital")
@@ -444,15 +444,15 @@ with passiva_label:
     st.subheader("2.2 langfristig (FK langfr.)")
     st.subheader("3 Bilanzanhang")
 with passiva_value:
-    formatted = locale.format_string("%d", eigenkapital_2, grouping=True)
+    formatted = eigenkapital_2 #locale.format_string("%d", eigenkapital_2, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", fremdkapital_2, grouping=True)
+    formatted = fremdkapital_2 #locale.format_string("%d", fremdkapital_2, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", fk_kurzfristig_2, grouping=True)
+    formatted = fk_kurzfristig_2 #locale.format_string("%d", fk_kurzfristig_2, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", fk_langfristig_2, grouping=True)
+    formatted = fk_langfristig_2 #locale.format_string("%d", fk_langfristig_2, grouping=True)
     st.subheader(f"{formatted} €")
-    formatted = locale.format_string("%d", bilanzanhang_2, grouping=True)
+    formatted = bilanzanhang_2 #locale.format_string("%d", bilanzanhang_2, grouping=True)
     st.subheader(f"{formatted} €")
 
 st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
@@ -462,12 +462,12 @@ gk_aktiva_label, gk_aktiva_value, gk_passiva_label, gk_passiva_value = st.column
 with gk_aktiva_label:
     st.subheader("Gesamtkapital Aktiva")
 with gk_aktiva_value:
-    formatted = locale.format_string("%d", gesamtkapital_aktiva_2, grouping=True)
+    formatted = gesamtkapital_aktiva_2 #locale.format_string("%d", gesamtkapital_aktiva_2, grouping=True)
     st.subheader(f"{formatted} €")
 with gk_passiva_label:
     st.subheader("Gesamtkapital Passiva")
 with gk_passiva_value:
-    formatted = locale.format_string("%d", gesamtkapital_passiva_2, grouping=True)
+    formatted = gesamtkapital_passiva_2 #locale.format_string("%d", gesamtkapital_passiva_2, grouping=True)
     st.subheader(f"{formatted} €")
 
 #Finanzwirtschaftliche Bilanzkennzahlen
