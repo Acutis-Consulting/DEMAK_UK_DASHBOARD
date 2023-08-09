@@ -18,7 +18,7 @@ def format_german(value):
     return str('{0:n}'.format(round(value))) + " €"
 
 
-st.sidebar.header('test `version 2`')
+st.sidebar.header('DEMAK Dashboard `Version 2`')
 
 st.sidebar.title('Simulationsparameter')
 
@@ -31,8 +31,8 @@ darlehenszins = (st.sidebar.number_input('Darlehenszins (%)',min_value=0.0,value
 psv_beitragssatz = (st.sidebar.number_input('PSV-Beitragssatz (%)',min_value=0.0,value=0.25)/100)
 uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlich pro AN',min_value=0,value=89)
 uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=2.00)/100)
-steuern_UK = (st.sidebar.number_input('Steuern UK (e.V.) (%)',min_value=0.0,value=15.83)/100)
-steuer_ersparnis = (st.sidebar.number_input('Steuerersparnis (%)',min_value=0.0,value=30.00)/100)
+steuern_UK = 0.1583 #(st.sidebar.number_input('Steuern UK (e.V.) (%)',min_value=0.0,value=15.83)/100)
+steuer_ersparnis = 0.3 #(st.sidebar.number_input('Steuerersparnis (%)',min_value=0.0,value=30.00)/100)
 p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=0.0)/100) #how do I name this parameter correctly?
 #p2_anlage_liq = (st.sidebar.number_input('Parameter 2 Anlage Liquidität (%)',min_value=0.0,value=8.0)/100) #how do I name this parameter correctly?
 #p3_anlage_liq = (st.sidebar.number_input('Parameter 3 Anlage Liquidität (%)',min_value=0.0,value=6.0)/100) #how do I name this parameter correctly?
@@ -56,6 +56,17 @@ with col2:
     fremdkapital = st.number_input('Fremdkapital',min_value=0,value=0, disabled=True)
     fk_kurzfristig = st.number_input('kurzfristig (FK kurzfr.)',min_value=0,value=0)
     fk_langfristig = st.number_input('langfristig (FK langfr.)',min_value=0,value=0)
+
+# Create options from 1 to x
+default_index = 9
+options = list(range(1, laufzeit + 3))
+st.sidebar.title('Musterbilanz')
+# Create a selectbox with the options
+c1, c2 = st.sidebar.columns(2)
+with c1:
+    bilanz_nach_jahren = st.selectbox('Bilanz nach X Jahren:', options, index=default_index)
+with c2:
+    bilanzverlaengerung_j_n = st.selectbox('Bilanzverlängerung:', ('ja', 'nein'))
 
 #Balance sheet calculations
 umlaufvermögen = vorraete+kurzfristige_forderungen+zahlungsmittel
@@ -199,19 +210,13 @@ for i in range(laufzeit+2):
             df.loc[i, 'Barwert Versorgung'] = an_ag_finanziert_jaehrlich_gesamt*(1+zins_zusage)
         else: df.loc[i, 'Barwert Versorgung'] = df.loc[i-1, 'Barwert Versorgung']*(1+zins_zusage)+an_ag_finanziert_jaehrlich_gesamt*(1+zins_zusage)
 
-csv = df.to_csv(index=False)
-st.download_button(
-    label="Download data as CSV",
-    data=csv,
-    file_name="data.csv",
-    mime="text/csv",
-)
+
 ################################
 
 
 
 # Row A1
-st.markdown('### Metrics')
+st.title('KPIs')
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("AN finanziert jährlich gesamt",format_german(an_finanziert_jaehrlich_gesamt))
 col2.metric("AG finanziert jährlich gesamt",format_german(ag_finanziert_jaehrlich_gesamt))
@@ -226,13 +231,25 @@ col1, col2, col3, col4 = st.columns(4)
 #col3.metric("Metric 3", "Value 3", "Delta 3")
 col4.metric("davon AN",str('{0:n}'.format(round(davon_an))) + " €")
 
+
+
+
+
 # Display the DataFrame as a table in Streamlit
 #st.table(df)
 #st.dataframe(df.style.hide(axis="index"))
 st.dataframe(df)
 
+csv = df.to_csv(index=False)
+st.download_button(
+    label="Download data as CSV",
+    data=csv,
+    file_name="data.csv",
+    mime="text/csv",
+)
 
 #Header
+st.title("   ")
 st.title("Eröffnungsbilanz")
 aktiva, passiva = st.columns(2)
 with aktiva:
@@ -311,7 +328,7 @@ net_working_capital_1 = umlaufvermögen-fk_kurzfristig
 deckungsgrad_a_1 = safe_division(eigenkapital,anlagevermoegen)
 deckungsgrad_b_1 = safe_division((eigenkapital+fk_langfristig),anlagevermoegen)
 
-
+st.title("   ")
 st.title("Finanzwirtschaftliche Bilanzkennzahlen")
 col1, col2, col3, col4, col5 = st.columns(5)
 col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_1))
@@ -330,22 +347,7 @@ col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_1))
 
 
 
-# Create options from 1 to x
-default_index = 9
-options = list(range(1, laufzeit + 3))
 
-# Create a selectbox with the options
-c1, c2, c3, c4 = st.columns(4)
-
-
-with c1:
-    bilanz_nach_jahren = st.selectbox('Bilanz nach X Jahren:', options, index=default_index)
-with c2:
-    bilanzverlaengerung_j_n = st.selectbox('Bilanzverlängerung:', ('ja', 'nein'))
-with c3:
-    " "
-with c4:
-    " "
 
 if bilanzverlaengerung_j_n == 'ja':
     bilanzverlängerung_txt = 'bei'
@@ -355,6 +357,7 @@ else:
     bilanzverlängerung_txt = 'error'
 
 #Header
+st.title("   ")
 st.title("Musterbilanz nach "+ f"{bilanz_nach_jahren} Jahren und Liquiditätsanlage "+ f"{to_percentage(p1_anlage_liq)} "+ f"{bilanzverlängerung_txt} Bilanzverlängerung ")
 
 aktiva, passiva = st.columns(2)
@@ -493,7 +496,7 @@ net_working_capital_2_change = safe_division(net_working_capital_2,net_working_c
 deckungsgrad_a_2_change = safe_division(deckungsgrad_a_2,deckungsgrad_a_1)-1
 deckungsgrad_b_2_change = safe_division(deckungsgrad_b_2,deckungsgrad_b_1)-1
 
-
+st.title("   ")
 st.title("Finanzwirtschaftliche Bilanzkennzahlen")
 col1, col2, col3, col4, col5 = st.columns(5)
 col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_2), to_percentage(eigenkapital_quote_2_change))
