@@ -298,7 +298,7 @@ def safe_division(numerator, denominator):
         return 0 # Or whatever value makes sense in this context
     else:
         return numerator / denominator
-
+###
 #Finanzwirtschaftliche Bilanzkennzahlen
 eigenkapital_quote_1 = safe_division(eigenkapital,gesamtkapital_passiva)
 anspannungsgrad_1 = safe_division(fremdkapital,gesamtkapital_passiva)
