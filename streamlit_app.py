@@ -482,16 +482,16 @@ net_working_capital_2 = umlaufvermögen_2-fk_kurzfristig_2
 deckungsgrad_a_2 = safe_division(eigenkapital_2,anlagevermoegen_2)
 deckungsgrad_b_2 = safe_division((eigenkapital_2+fk_langfristig_2),anlagevermoegen_2)
 
-eigenkapital_quote_2_change = (eigenkapital_quote_2/eigenkapital_quote_1)-1
-anspannungsgrad_2_change = (anspannungsgrad_2/anspannungsgrad_1)-1
-statischer_verschuldungsgrad_2_change = (statischer_verschuldungsgrad_2/statischer_verschuldungsgrad_1)-1
-intensitaet_langfristiges_kapital_2_change = (intensitaet_langfristiges_kapital_2/intensitaet_langfristiges_kapital_1)-1
-liquiditaet_1_grades_2_change = (liquiditaet_1_grades_2/liquiditaet_1_grades_1)-1
-liquiditaet_2_grades_2_change = (liquiditaet_2_grades_2/liquiditaet_2_grades_1)-1
-liquiditaet_3_grades_2_change = (liquiditaet_3_grades_2/liquiditaet_3_grades_1)-1
-net_working_capital_2_change = (net_working_capital_2/net_working_capital_1)-1
-deckungsgrad_a_2_change = (deckungsgrad_a_2/deckungsgrad_a_1)-1
-deckungsgrad_b_2_change = (deckungsgrad_b_2/deckungsgrad_b_1)-1
+eigenkapital_quote_2_change = safe_division(eigenkapital_quote_2,eigenkapital_quote_1)-1
+anspannungsgrad_2_change = safe_division(anspannungsgrad_2,anspannungsgrad_1)-1
+statischer_verschuldungsgrad_2_change = safe_division(statischer_verschuldungsgrad_2,statischer_verschuldungsgrad_1)-1
+intensitaet_langfristiges_kapital_2_change = safe_division(intensitaet_langfristiges_kapital_2,intensitaet_langfristiges_kapital_1)-1
+liquiditaet_1_grades_2_change = safe_division(liquiditaet_1_grades_2,liquiditaet_1_grades_1)-1
+liquiditaet_2_grades_2_change = safe_division(liquiditaet_2_grades_2,liquiditaet_2_grades_1)-1
+liquiditaet_3_grades_2_change = safe_division(liquiditaet_3_grades_2,liquiditaet_3_grades_1)-1
+net_working_capital_2_change = safe_division(net_working_capital_2,net_working_capital_1)-1
+deckungsgrad_a_2_change = safe_division(deckungsgrad_a_2,deckungsgrad_a_1)-1
+deckungsgrad_b_2_change = safe_division(deckungsgrad_b_2,deckungsgrad_b_1)-1
 
 
 st.title("Finanzwirtschaftliche Bilanzkennzahlen")
