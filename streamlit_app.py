@@ -1,25 +1,33 @@
 import streamlit as st
 import pandas as pd
+from PIL import Image
 import plost
-#import locale
-
-#locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
+
 
 with open('style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 def to_percentage(value):
-    percentage = "{:,.2f}".format(value * 100).replace('.', ',')
-    return f"{percentage}%"
+    #v1 = "{:,.2f}".format(value * 100).replace('.', ',')
+    v1 = f'{value*100:,.2f} %'
+    v2 = v1.replace(',','#')
+    v3 = v2.replace('.','&')
+    v4 = v3.replace('#','.')
+    v5 = v4.replace('&',',')
+    return v5
 
 def format_german(value):
-    return str('{0:n}'.format(round(value))) + " €"
+    v1 = f'{value:,.2f} €'
+    v2 = v1.replace(',','#')
+    v3 = v2.replace('.','%')
+    v4 = v3.replace('#','.')
+    v5 = v4.replace('%',',')
+    return v5
 
 
 st.sidebar.header('DEMAK Dashboard `Version 2`')
-
 st.sidebar.title('Simulationsparameter')
 
 arbeitnehmer_anzahl = st.sidebar.number_input('Arbeitnehmeranzahl (AN)',min_value=0,value=100)
@@ -33,10 +41,7 @@ uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlic
 uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=2.00)/100)
 steuern_UK = 0.1583 #(st.sidebar.number_input('Steuern UK (e.V.) (%)',min_value=0.0,value=15.83)/100)
 steuer_ersparnis = 0.3 #(st.sidebar.number_input('Steuerersparnis (%)',min_value=0.0,value=30.00)/100)
-p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=0.0)/100) #how do I name this parameter correctly?
-#p2_anlage_liq = (st.sidebar.number_input('Parameter 2 Anlage Liquidität (%)',min_value=0.0,value=8.0)/100) #how do I name this parameter correctly?
-#p3_anlage_liq = (st.sidebar.number_input('Parameter 3 Anlage Liquidität (%)',min_value=0.0,value=6.0)/100) #how do I name this parameter correctly?
-
+p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=0.0)/100)
 passiva_2 = 0
 
 st.sidebar.title('Eröffnungsbilanz')
@@ -78,6 +83,7 @@ gesamtkapital_passiva = eigenkapital + fremdkapital
 # Create Dataframe
 df = pd.DataFrame()
 
+
 an_finanziert_jaehrlich_gesamt = arbeitnehmer_anzahl * an_fin_jaehrlich_pro_an
 ag_finanziert_jaehrlich_gesamt = arbeitnehmer_anzahl * ag_fin_jaehrlich_pro_an
 an_ag_finanziert_jaehrlich_gesamt = an_finanziert_jaehrlich_gesamt+ag_finanziert_jaehrlich_gesamt
@@ -116,39 +122,35 @@ for i in range(laufzeit+2):
         df.loc[i, 'Tatsächliches Kassenvermögen'] =df.loc[i, 'Zulässige Dotierung']
         df.loc[i, 'PSV Beitrag'] = (davon_an/10)*0.25*20*psv_beitragssatz #M
         df.loc[i, 'Kosten UK-Verwaltung'] = (kapital_bei_ablauf*uk_verwaltung_einmalig_im_ersten_jahr)+(arbeitnehmer_anzahl*uk_verwaltung_jaehrlich_pro_an)
-
         df.loc[i, 'EU + SV Ersparnis'] = an_finanziert_jaehrlich_gesamt*1.2
         df.loc[i, 'Steuerersparnis'] = (df.loc[i, 'EU + SV Ersparnis']-df.loc[i,'PSV Beitrag']-df.loc[i,'Kosten UK-Verwaltung']-df.loc[i,'Zulässige Dotierung'])*steuer_ersparnis*-1
         df.loc[i, 'Liquiditätsänderung'] = df.loc[i, 'EU + SV Ersparnis']+ df.loc[i,'Steuerersparnis']-df.loc[i, 'PSV Beitrag']-df.loc[i, 'Kosten UK-Verwaltung']
         df.loc[i, 'Anlage Liquidität'] = df.loc[i, 'Liquiditätsänderung']
         df.loc[i, 'Barwert Versorgung'] = 0
-        #df['Anlage Liquidität 1'] = df['Liquiditätsänderung']
-        pass  # replace with your actual calculations
-
-
+        pass
 
     elif i == (laufzeit):
         df.loc[i, 'Zulässiges Kassenvemögen'] = 0
         df.loc[i, 'Höchstzulässiges Kassenvermögen'] = 0
         df.loc[i, 'Zulässige Dotierung'] = 0
-
         df.loc[i, 'Versorgung fällig'] = kapital_bei_ablauf
         df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins #F ###Check
         df.loc[i,'Darlehensänderung'] = df.loc[i,'Zulässige Dotierung'] + df.loc[i,'Darlehenszinsen'] - df.loc[i-1, 'Steuern UK (e.V.)']#.shift(fill_value=0) #J ###Check
         df.loc[i,'Tatsächliches Kassenvermögen'] = df.loc[i-1,'Tatsächliches Kassenvermögen'] + df.loc[i,'Darlehensänderung'] - df.loc[i,'Versorgung fällig'] #K
         df['Überdotierung'] = df['Tatsächliches Kassenvermögen'] - df['Höchstzulässiges Kassenvermögen'] #E
+
         if df.loc[i, 'Überdotierung'] > 0:
             df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i, 'Überdotierung'] / df.loc[i, 'Tatsächliches Kassenvermögen']) * df.loc[i, 'Darlehenszinsen'] #G
         else:
             df.loc[i, 'Zinsanteil Überdotierung'] = 0
+
         df.loc[df['Überdotierung'] > 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK) #H
         df.loc[i, 'EU + SV Ersparnis'] = 0
         df.loc[i, 'Steuerersparnis'] = (-df.loc[i, 'Darlehenszinsen'])*steuer_ersparnis*-1 #O
         df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)'].shift(fill_value=0)-df['Versorgung fällig']
         df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq)+df.loc[i, 'Liquiditätsänderung']
         df.loc[i, 'Barwert Versorgung'] = df.loc[i-1, 'Barwert Versorgung']*(1+zins_zusage)+an_ag_finanziert_jaehrlich_gesamt*(1+zins_zusage)
-        #df.loc[i, 'Zulässige Dotierung'] = 0
-        pass  # replace with your actual calculations
+        pass
 
     elif i == (laufzeit+1):
         df.loc[i, 'Zulässiges Kassenvemögen'] = 0
@@ -175,10 +177,10 @@ for i in range(laufzeit+2):
         if i > 2:
             df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf/10)*0.25*20*psv_beitragssatz
         else:
-            df.loc[i, 'PSV Beitrag'] = (davon_an/10)*0.25*20*psv_beitragssatz  #M ####ANPASSEN
-        df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins #F ###Check
+            df.loc[i, 'PSV Beitrag'] = (davon_an/10)*0.25*20*psv_beitragssatz  #M
 
-        df.loc[i, 'Versorgung fällig'] = 0 #I ####ANPASSEN
+        df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins #F ###Check
+        df.loc[i, 'Versorgung fällig'] = 0 #I
 
         if (df.loc[i-1, 'Tatsächliches Kassenvermögen']+df.loc[i, 'Darlehenszinsen']+(kapital_bei_ablauf/10)*0.25) <= df.loc[i, 'Zulässiges Kassenvemögen']:
             df.loc[i,'Zulässige Dotierung'] = (kapital_bei_ablauf/10)*0.25
@@ -210,10 +212,12 @@ for i in range(laufzeit+2):
             df.loc[i, 'Barwert Versorgung'] = an_ag_finanziert_jaehrlich_gesamt*(1+zins_zusage)
         else: df.loc[i, 'Barwert Versorgung'] = df.loc[i-1, 'Barwert Versorgung']*(1+zins_zusage)+an_ag_finanziert_jaehrlich_gesamt*(1+zins_zusage)
 
-
-################################
-
-
+#Logo
+logo_path = "ressources/demak.png"  # Adjust the path to your logo file
+logo = Image.open(logo_path)
+new_size = (int(logo.width * 1), int(logo.height * 1))
+resized_logo = logo.resize(new_size)
+st.image(resized_logo)
 
 # Row A1
 st.title('KPIs')
@@ -226,23 +230,15 @@ col4.metric("Kapital bei Ablauf",format_german(kapital_bei_ablauf))
 
 #Row A2
 col1, col2, col3, col4 = st.columns(4)
-#col1.metric("Metric 1", "Value 1", "Delta 1")
-#col2.metric("Metric 2", "Value 2", "Delta 2")
-#col3.metric("Metric 3", "Value 3", "Delta 3")
-col4.metric("davon AN",str('{0:n}'.format(round(davon_an))) + " €")
-
-
-
-
+col4.metric("davon AN",format_german(davon_an))
 
 # Display the DataFrame as a table in Streamlit
-#st.table(df)
-#st.dataframe(df.style.hide(axis="index"))
+df = df.round(2)
 st.dataframe(df)
 
 csv = df.to_csv(index=False)
 st.download_button(
-    label="Download data as CSV",
+    label="Als CSV herunterladen",
     data=csv,
     file_name="data.csv",
     mime="text/csv",
@@ -269,30 +265,21 @@ with aktiva_label:
     st.subheader("2.2 kurzfristige Forderungen")
     st.subheader("2.3 Zahlungsmittel")
 with aktiva_value:
-    formatted = anlagevermoegen #locale.format_string("%d", anlagevermoegen, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = umlaufvermögen #locale.format_string("%d", umlaufvermögen, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = vorraete #locale.format_string("%d", vorraete, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = kurzfristige_forderungen #locale.format_string("%d", kurzfristige_forderungen, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = zahlungsmittel #locale.format_string("%d", zahlungsmittel, grouping=True)
-    st.subheader(f"{formatted} €")
+    st.subheader(format_german(anlagevermoegen))
+    st.subheader(format_german(umlaufvermögen))
+    st.subheader(format_german(vorraete))
+    st.subheader(format_german(kurzfristige_forderungen))
+    st.subheader(format_german(zahlungsmittel))
 with passiva_label:
     st.subheader("1 Eigenkapital")
     st.subheader("2 Fremdkapital")
     st.subheader("2.1 kurzfristig (FK kurzfr.)")
     st.subheader("2.2 langfristig (FK langfr.)")
 with passiva_value:
-    formatted = eigenkapital #locale.format_string("%d", eigenkapital, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = fremdkapital #locale.format_string("%d", fremdkapital, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = fk_kurzfristig #locale.format_string("%d", fk_kurzfristig, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = fk_langfristig #locale.format_string("%d", fk_langfristig, grouping=True)
-    st.subheader(f"{formatted} €")
+    st.subheader(format_german(eigenkapital))
+    st.subheader(format_german(fremdkapital))
+    st.subheader(format_german(fk_kurzfristig))
+    st.subheader(format_german(fk_langfristig))
 
 st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
 
@@ -302,20 +289,19 @@ with gk_aktiva_label:
     st.subheader("Gesamtkapital Aktiva")
 with gk_aktiva_value:
     formatted = gesamtkapital_aktiva #locale.format_string("%d", gesamtkapital_aktiva, grouping=True)
-    st.subheader(f"{formatted} €")
+    st.subheader(format_german(gesamtkapital_aktiva)) #st.subheader(format_german())
 with gk_passiva_label:
     st.subheader("Gesamtkapital Passiva")
 with gk_passiva_value:
     formatted = gesamtkapital_passiva #locale.format_string("%d", gesamtkapital_passiva, grouping=True)
-    st.subheader(f"{formatted} €")
+    st.subheader(format_german(gesamtkapital_passiva))
 
-### avoid dividing by 0 denominator
+#avoid dividing by 0 denominator
 def safe_division(numerator, denominator):
     if denominator == 0:
         return 0 # Or whatever value makes sense in this context
     else:
         return numerator / denominator
-###
 #Finanzwirtschaftliche Bilanzkennzahlen
 eigenkapital_quote_1 = safe_division(eigenkapital,gesamtkapital_passiva)
 anspannungsgrad_1 = safe_division(fremdkapital,gesamtkapital_passiva)
@@ -341,13 +327,6 @@ col4.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_lang
 col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_1))
 col5.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_1))
 col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_1))
-#col5.metric("debug", format_german(tatsaechliches_kassenvermoegen_backup))
-
-
-
-
-
-
 
 if bilanzverlaengerung_j_n == 'ja':
     bilanzverlängerung_txt = 'bei'
@@ -390,18 +369,21 @@ umlaufvermögen_2 = vorraete_2 + kurzfristige_forderungen_2 + zahlungsmittel_2
 gesamtkapital_aktiva_2 = anlagevermoegen + umlaufvermögen_2
 fk_kurzfristig_2 = fk_kurzfristig
 
-
 if bilanzverlaengerung_j_n == 'ja':
     fk_kurzfristig_2 = fk_kurzfristig
 elif bilanzverlaengerung_j_n == 'nein':
     if bilanz_nach_jahren == laufzeit+2:
         fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität']
+        if fk_kurzfristig_2 < 0:
+            zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
+            fk_kurzfristig_2 = 0
     else:
         fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren, 'Anlage Liquidität']
+        if fk_kurzfristig_2 < 0:
+            zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
+            fk_kurzfristig_2 = 0
 else:
     fk_kurzfristig_2 = 0
-
-
 
 if bilanz_nach_jahren == laufzeit+2:
     fk_langfristig_2 = fk_langfristig
@@ -415,12 +397,8 @@ if bilanz_nach_jahren != laufzeit+2:
 else:
     bilanzanhang_2 = 0
 
-
 fremdkapital_2 = fk_kurzfristig_2 + fk_langfristig_2 + bilanzanhang_2
 eigenkapital_2 = gesamtkapital_aktiva_2 - fremdkapital_2
-
-
-
 gesamtkapital_passiva_2 = eigenkapital_2 + fremdkapital_2
 
 with aktiva_label:
@@ -430,16 +408,11 @@ with aktiva_label:
     st.subheader("2.2 kurzfristige Forderungen")
     st.subheader("2.3 Zahlungsmittel")
 with aktiva_value:
-    formatted = anlagevermoegen_2 #locale.format_string("%d", anlagevermoegen_2, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = umlaufvermögen_2 #locale.format_string("%d", umlaufvermögen_2, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = vorraete_2 #locale.format_string("%d", vorraete_2, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = kurzfristige_forderungen_2 #locale.format_string("%d", kurzfristige_forderungen_2, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = zahlungsmittel_2 #locale.format_string("%d", zahlungsmittel_2, grouping=True)
-    st.subheader(f"{formatted} €")
+    st.subheader(format_german(anlagevermoegen_2))
+    st.subheader(format_german(umlaufvermögen_2))
+    st.subheader(format_german(vorraete_2))
+    st.subheader(format_german(kurzfristige_forderungen_2))
+    st.subheader(format_german(zahlungsmittel_2))
 with passiva_label:
     st.subheader("1 Eigenkapital")
     st.subheader("2 Fremdkapital")
@@ -447,16 +420,11 @@ with passiva_label:
     st.subheader("2.2 langfristig (FK langfr.)")
     st.subheader("3 Bilanzanhang")
 with passiva_value:
-    formatted = eigenkapital_2 #locale.format_string("%d", eigenkapital_2, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = fremdkapital_2 #locale.format_string("%d", fremdkapital_2, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = fk_kurzfristig_2 #locale.format_string("%d", fk_kurzfristig_2, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = fk_langfristig_2 #locale.format_string("%d", fk_langfristig_2, grouping=True)
-    st.subheader(f"{formatted} €")
-    formatted = bilanzanhang_2 #locale.format_string("%d", bilanzanhang_2, grouping=True)
-    st.subheader(f"{formatted} €")
+    st.subheader(format_german(eigenkapital_2))
+    st.subheader(format_german(fremdkapital_2))
+    st.subheader(format_german(fk_kurzfristig_2))
+    st.subheader(format_german(fk_langfristig_2))
+    st.subheader(format_german(bilanzanhang_2))
 
 st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
 
@@ -465,13 +433,14 @@ gk_aktiva_label, gk_aktiva_value, gk_passiva_label, gk_passiva_value = st.column
 with gk_aktiva_label:
     st.subheader("Gesamtkapital Aktiva")
 with gk_aktiva_value:
-    formatted = gesamtkapital_aktiva_2 #locale.format_string("%d", gesamtkapital_aktiva_2, grouping=True)
-    st.subheader(f"{formatted} €")
+    formatted = format_german(gesamtkapital_aktiva_2) #locale.format_string("%d", gesamtkapital_aktiva_2, grouping=True)
+    st.subheader(format_german(gesamtkapital_aktiva_2))
+    #st.subheader(f'{gesamtkapital_aktiva_2:,}'.replace(',','.'))
 with gk_passiva_label:
     st.subheader("Gesamtkapital Passiva")
 with gk_passiva_value:
     formatted = gesamtkapital_passiva_2 #locale.format_string("%d", gesamtkapital_passiva_2, grouping=True)
-    st.subheader(f"{formatted} €")
+    st.subheader(format_german(gesamtkapital_passiva_2))
 
 #Finanzwirtschaftliche Bilanzkennzahlen
 eigenkapital_quote_2 = safe_division(eigenkapital_2,gesamtkapital_passiva_2)
@@ -509,7 +478,6 @@ col4.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_lang
 col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_2), to_percentage(deckungsgrad_a_2_change))
 col5.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_2), to_percentage(liquiditaet_1_grades_2_change))
 col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_2), to_percentage(deckungsgrad_b_2_change))
-#col5.metric("debug", format_german(tatsaechliches_kassenvermoegen_backup))
 
 ###Markdowns
 st.markdown("""
