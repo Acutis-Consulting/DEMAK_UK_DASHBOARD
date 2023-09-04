@@ -73,6 +73,22 @@ with c1:
 with c2:
     bilanzverlaengerung_j_n = st.selectbox('Bilanzverlängerung:', ('ja', 'nein'))
 
+# Define flags for each metric's visibility
+st.sidebar.title('Finanzwirtschaftliche Bilanzkennzahlen')
+d1, d2 = st.sidebar.columns(2)
+with d1:
+    show_eigenkapital_quote = st.checkbox("Eigenkapitalquote", value=True)
+    show_anspannungsgrad = st.checkbox("Anspannungsgrad", value=True)
+    show_statischer_verschuldungsgrad = st.checkbox("Statischer Verschuldungsgrad", value=True)
+    show_intensitaet_langfristiges_kapital = st.checkbox("Intensität langfristigen Kapitals", value=True)
+    show_liquiditaet_1_grades = st.checkbox("Liquidität 1. Grades", value=True)
+with d2:
+    show_liquiditaet_2_grades = st.checkbox("Liquidität 2. Grades", value=True)
+    show_liquiditaet_3_grades = st.checkbox("Liquidität 3. Grades", value=True)
+    show_net_working_capital = st.checkbox("Net Working Capital", value=True)
+    show_deckungsgrad_a = st.checkbox("Deckungsgrad A", value=True)
+    show_deckungsgrad_b = st.checkbox("Deckungsgrad B", value=True)
+
 #Balance sheet calculations
 umlaufvermögen = vorraete+kurzfristige_forderungen+zahlungsmittel
 gesamtkapital_aktiva = anlagevermoegen + umlaufvermögen
@@ -317,16 +333,29 @@ deckungsgrad_b_1 = safe_division((eigenkapital+fk_langfristig),anlagevermoegen)
 st.title("   ")
 st.title("Finanzwirtschaftliche Bilanzkennzahlen")
 col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_1))
-col1.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_1))
-col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_1))
-col2.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_1))
-col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_1))
-col3.metric("Net Working Capital", format_german(net_working_capital_1))
-col4.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_1))
-col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_1))
-col5.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_1))
-col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_1))
+
+
+if show_eigenkapital_quote:
+    col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_1))
+if show_liquiditaet_2_grades:
+    col1.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_1))
+if show_anspannungsgrad:
+    col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_1))
+if show_liquiditaet_3_grades:
+    col2.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_1))
+if show_statischer_verschuldungsgrad:
+    col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_1))
+if show_net_working_capital:
+    col3.metric("Net Working Capital", format_german(net_working_capital_1))
+if show_intensitaet_langfristiges_kapital:
+    col4.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_1))
+if show_deckungsgrad_a:
+    col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_1))
+if show_liquiditaet_1_grades:
+    col5.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_1))
+if show_deckungsgrad_b:
+    col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_1))
+
 
 if bilanzverlaengerung_j_n == 'ja':
     bilanzverlängerung_txt = 'bei'
@@ -468,16 +497,26 @@ deckungsgrad_b_2_change = safe_division(deckungsgrad_b_2,deckungsgrad_b_1)-1
 st.title("   ")
 st.title("Finanzwirtschaftliche Bilanzkennzahlen")
 col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_2), to_percentage(eigenkapital_quote_2_change))
-col1.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_2), to_percentage(liquiditaet_2_grades_2_change))
-col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_2), to_percentage(anspannungsgrad_2_change))
-col2.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_2), to_percentage(liquiditaet_3_grades_2_change))
-col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_2), to_percentage(statischer_verschuldungsgrad_2_change))
-col3.metric("Net Working Capital", format_german(net_working_capital_2), to_percentage(net_working_capital_2_change))
-col4.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_2), to_percentage(intensitaet_langfristiges_kapital_2_change))
-col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_2), to_percentage(deckungsgrad_a_2_change))
-col5.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_2), to_percentage(liquiditaet_1_grades_2_change))
-col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_2), to_percentage(deckungsgrad_b_2_change))
+if show_eigenkapital_quote:
+    col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_2), to_percentage(eigenkapital_quote_2_change))
+if show_liquiditaet_2_grades:
+    col1.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_2), to_percentage(liquiditaet_2_grades_2_change))
+if show_anspannungsgrad:
+    col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_2), to_percentage(anspannungsgrad_2_change))
+if show_liquiditaet_3_grades:
+    col2.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_2), to_percentage(liquiditaet_3_grades_2_change))
+if show_statischer_verschuldungsgrad:
+    col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_2), to_percentage(statischer_verschuldungsgrad_2_change))
+if show_net_working_capital:
+    col3.metric("Net Working Capital", format_german(net_working_capital_2), to_percentage(net_working_capital_2_change))
+if show_intensitaet_langfristiges_kapital:
+    col4.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_2), to_percentage(intensitaet_langfristiges_kapital_2_change))
+if show_deckungsgrad_a:
+    col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_2), to_percentage(deckungsgrad_a_2_change))
+if show_liquiditaet_1_grades:
+    col5.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_2), to_percentage(liquiditaet_1_grades_2_change))
+if show_deckungsgrad_b:
+    col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_2), to_percentage(deckungsgrad_b_2_change))
 
 ###Markdowns
 st.markdown("""
@@ -487,7 +526,7 @@ div[data-testid="metric-container"] {
     border: 1px solid #CCCCCC;
     padding: 5% 5% 5% 10%;
     border-radius: 15px;
-    border-left: 0.5rem solid #9AD8E1 !important;
+    border-left: 0.5rem solid #fdff00 !important;
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
    overflow-wrap: break-word;
 }
