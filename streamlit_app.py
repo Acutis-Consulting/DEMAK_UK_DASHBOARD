@@ -162,7 +162,7 @@ if st.sidebar.button('Parameter Speichern'):
     b64 = base64.b64encode(json_str.encode()).decode()
 
     # Provide a link to download the JSON file
-    href = f'<a href="data:file/json;base64,{b64}" download="parameters.json">Download Parameters</a>'
+    href = f'<a href="data:file/json;base64,{b64}" download="parameters.json">Parameter Herunterladen</a>'
     st.sidebar.markdown(href, unsafe_allow_html=True)
 
 
