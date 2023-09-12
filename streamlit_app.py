@@ -2,9 +2,10 @@ import streamlit as st
 import pandas as pd
 from PIL import Image
 import plost
+import json
+import base64
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
-
 
 with open('style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
@@ -30,43 +31,85 @@ def format_german(value):
 st.sidebar.header('DEMAK Dashboard `Version 2`')
 st.sidebar.title('Simulationsparameter')
 
-arbeitnehmer_anzahl = st.sidebar.number_input('Arbeitnehmeranzahl (AN)',min_value=0,value=100)
-zins_zusage = (st.sidebar.number_input('Zins Zusage (%)',min_value=0.0,value=3.00)/100)
-an_fin_jaehrlich_pro_an = st.sidebar.number_input('AN finanziert jährlich pro AN (€)',min_value=0.0,value=1200.0)
-ag_fin_jaehrlich_pro_an = st.sidebar.number_input('AG finanziert jährlich pro AN (€)',min_value=0.0,value=360.0)
-laufzeit = st.sidebar.number_input('Laufzeit Zusage (Jahre)',min_value=0,value=30)
-darlehenszins = (st.sidebar.number_input('Darlehenszins (%)',min_value=0.0,value=7.50)/100)
-psv_beitragssatz = (st.sidebar.number_input('PSV-Beitragssatz (%)',min_value=0.0,value=0.25)/100)
-uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlich pro AN',min_value=0,value=89)
-uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=2.00)/100)
+
+uploaded_file = st.sidebar.file_uploader("Parameter Hochladen", type=["json"])
+
+if uploaded_file:
+    # Reading the uploaded JSON file
+    uploaded_data = json.load(uploaded_file)
+
+    # Update the values from the uploaded data
+    #arbeitnehmer_anzahl = uploaded_data.get('Arbeitnehmeranzahl', arbeitnehmer_anzahl)
+    #zins_zusage = uploaded_data.get('Zins Zusage', zins_zusage)
+
+
+if uploaded_file:
+    arbeitnehmer_anzahl = st.sidebar.number_input('Arbeitnehmeranzahl (AN)',min_value=0,value= uploaded_data.get('Arbeitnehmeranzahl'))
+    zins_zusage = (st.sidebar.number_input('Zins Zusage (%)',min_value=0.0,value= uploaded_data.get('Zins Zusage') )/100)
+    an_fin_jaehrlich_pro_an = st.sidebar.number_input('AN finanziert jährlich pro AN (€)',min_value=0.0,value=uploaded_data.get('an_fin_jaehrlich_pro_an'))
+    ag_fin_jaehrlich_pro_an = st.sidebar.number_input('AG finanziert jährlich pro AN (€)',min_value=0.0,value=uploaded_data.get('ag_fin_jaehrlich_pro_an'))
+    laufzeit = st.sidebar.number_input('Laufzeit Zusage (Jahre)',min_value=0,value=uploaded_data.get('laufzeit'))
+    darlehenszins = (st.sidebar.number_input('Darlehenszins (%)',min_value=0.0,value=uploaded_data.get('darlehenszins'))/100)
+    psv_beitragssatz = (st.sidebar.number_input('PSV-Beitragssatz (%)',min_value=0.0,value=uploaded_data.get('psv_beitragssatz'))/100)
+    uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlich pro AN',min_value=0,value=uploaded_data.get('uk_verwaltung_jaehrlich_pro_an'))
+    uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=uploaded_data.get('uk_verwaltung_einmalig_im_ersten_jahr'))/100)
+    p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=uploaded_data.get('p1_anlage_liq'))/100)
+
+else:
+    arbeitnehmer_anzahl = st.sidebar.number_input('Arbeitnehmeranzahl (AN)',min_value=0,value=100)
+    zins_zusage = (st.sidebar.number_input('Zins Zusage (%)',min_value=0.0,value=3.00)/100)
+    an_fin_jaehrlich_pro_an = st.sidebar.number_input('AN finanziert jährlich pro AN (€)',min_value=0.0,value=1200.0)
+    ag_fin_jaehrlich_pro_an = st.sidebar.number_input('AG finanziert jährlich pro AN (€)',min_value=0.0,value=360.0)
+    laufzeit = st.sidebar.number_input('Laufzeit Zusage (Jahre)',min_value=0,value=30)
+    darlehenszins = (st.sidebar.number_input('Darlehenszins (%)',min_value=0.0,value=7.50)/100)
+    psv_beitragssatz = (st.sidebar.number_input('PSV-Beitragssatz (%)',min_value=0.0,value=0.25)/100)
+    uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlich pro AN',min_value=0,value=89)
+    uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=2.00)/100)
+    p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=0.0)/100)
+
 steuern_UK = 0.1583 #(st.sidebar.number_input('Steuern UK (e.V.) (%)',min_value=0.0,value=15.83)/100)
 steuer_ersparnis = 0.3 #(st.sidebar.number_input('Steuerersparnis (%)',min_value=0.0,value=30.00)/100)
-p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=0.0)/100)
 passiva_2 = 0
+
 
 st.sidebar.title('Eröffnungsbilanz')
 col3, col4 = st.sidebar.columns(2)
 col3.subheader('Aktiva')
 col4.subheader('Passiva')
 
-col1, col2 = st.sidebar.columns(2)
-with col1:
-    anlagevermoegen = st.number_input('Anlagevermögen',min_value=0,value=0)
-    umlaufvermögen = st.number_input('Umlaufvermögen',min_value=0,value=0, disabled=True)
-    vorraete = st.number_input('Vorräte',min_value=0,value=0)
-    kurzfristige_forderungen = st.number_input('Kurzfristige Forderungen',min_value=0,value=0)
-    zahlungsmittel = st.number_input('Zahlungsmittel',min_value=0,value=0)
-with col2:
-    eigenkapital = st.number_input('Eigenkapital',min_value=0,value=0, disabled=True)
-    fremdkapital = st.number_input('Fremdkapital',min_value=0,value=0, disabled=True)
-    fk_kurzfristig = st.number_input('kurzfristig (FK kurzfr.)',min_value=0,value=0)
-    fk_langfristig = st.number_input('langfristig (FK langfr.)',min_value=0,value=0)
+if uploaded_file:
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        anlagevermoegen = st.number_input('Anlagevermögen',min_value=0,value=uploaded_data.get('Anlagevermögen'))
+        umlaufvermögen = st.number_input('Umlaufvermögen',min_value=0,value=0, disabled=True)
+        vorraete = st.number_input('Vorräte',min_value=0,value=uploaded_data.get('Vorräte'))
+        kurzfristige_forderungen = st.number_input('Kurzfristige Forderungen',min_value=0,value=uploaded_data.get('Kurzfristige Forderungen'))
+        zahlungsmittel = st.number_input('Zahlungsmittel',min_value=0,value=uploaded_data.get('Zahlungsmittel'))
+    with col2:
+        eigenkapital = st.number_input('Eigenkapital',min_value=0,value=0, disabled=True)
+        fremdkapital = st.number_input('Fremdkapital',min_value=0,value=0, disabled=True)
+        fk_kurzfristig = st.number_input('kurzfristig (FK kurzfr.)',min_value=0,value=uploaded_data.get('kurzfristig (FK kurzfr.)'))
+        fk_langfristig = st.number_input('langfristig (FK langfr.)',min_value=0,value=uploaded_data.get('langfristig (FK langfr.)'))
+else:
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        anlagevermoegen = st.number_input('Anlagevermögen',min_value=0,value=0)
+        umlaufvermögen = st.number_input('Umlaufvermögen',min_value=0,value=0, disabled=True)
+        vorraete = st.number_input('Vorräte',min_value=0,value=0)
+        kurzfristige_forderungen = st.number_input('Kurzfristige Forderungen',min_value=0,value=0)
+        zahlungsmittel = st.number_input('Zahlungsmittel',min_value=0,value=0)
+    with col2:
+        eigenkapital = st.number_input('Eigenkapital',min_value=0,value=0, disabled=True)
+        fremdkapital = st.number_input('Fremdkapital',min_value=0,value=0, disabled=True)
+        fk_kurzfristig = st.number_input('kurzfristig (FK kurzfr.)',min_value=0,value=0)
+        fk_langfristig = st.number_input('langfristig (FK langfr.)',min_value=0,value=0)
 
 # Create options from 1 to x
-default_index = 9
+default_index = 0
 options = list(range(1, laufzeit + 3))
 st.sidebar.title('Musterbilanz')
 # Create a selectbox with the options
+
 c1, c2 = st.sidebar.columns(2)
 with c1:
     bilanz_nach_jahren = st.selectbox('Bilanz nach X Jahren:', options, index=default_index)
@@ -89,6 +132,43 @@ with d2:
     show_deckungsgrad_a = st.checkbox("Deckungsgrad A", value=True)
     show_deckungsgrad_b = st.checkbox("Deckungsgrad B", value=True)
 
+# Add a button to trigger the save
+st.sidebar.title(' ')
+if st.sidebar.button('Parameter Speichern'):
+    # Creating a dictionary of parameters to save
+    data_to_save = {
+        'Arbeitnehmeranzahl': arbeitnehmer_anzahl,
+        'Zins Zusage': zins_zusage*100,
+        'an_fin_jaehrlich_pro_an': an_fin_jaehrlich_pro_an,
+        'ag_fin_jaehrlich_pro_an': ag_fin_jaehrlich_pro_an,
+        'laufzeit': laufzeit,
+        'darlehenszins': darlehenszins*100,
+        'psv_beitragssatz': psv_beitragssatz*100,
+        'uk_verwaltung_jaehrlich_pro_an': uk_verwaltung_jaehrlich_pro_an,
+        'uk_verwaltung_einmalig_im_ersten_jahr': uk_verwaltung_einmalig_im_ersten_jahr*100,
+        'p1_anlage_liq': p1_anlage_liq*100,
+        'Anlagevermögen': anlagevermoegen,
+        'Vorräte': vorraete,
+        'Kurzfristige Forderungen': kurzfristige_forderungen,
+        'Zahlungsmittel': zahlungsmittel,
+        'kurzfristig (FK kurzfr.)': fk_kurzfristig,
+        'langfristig (FK langfr.)': fk_langfristig
+    }
+
+    # Convert dictionary to JSON string
+    json_str = json.dumps(data_to_save, indent=4)
+
+    # Convert the string to bytes
+    b64 = base64.b64encode(json_str.encode()).decode()
+
+    # Provide a link to download the JSON file
+    href = f'<a href="data:file/json;base64,{b64}" download="parameters.json">Download Parameters</a>'
+    st.sidebar.markdown(href, unsafe_allow_html=True)
+
+
+
+
+
 #Balance sheet calculations
 umlaufvermögen = vorraete+kurzfristige_forderungen+zahlungsmittel
 gesamtkapital_aktiva = anlagevermoegen + umlaufvermögen
@@ -98,8 +178,6 @@ gesamtkapital_passiva = eigenkapital + fremdkapital
 
 # Create Dataframe
 df = pd.DataFrame()
-
-
 an_finanziert_jaehrlich_gesamt = arbeitnehmer_anzahl * an_fin_jaehrlich_pro_an
 ag_finanziert_jaehrlich_gesamt = arbeitnehmer_anzahl * ag_fin_jaehrlich_pro_an
 an_ag_finanziert_jaehrlich_gesamt = an_finanziert_jaehrlich_gesamt+ag_finanziert_jaehrlich_gesamt
@@ -227,6 +305,7 @@ for i in range(laufzeit+2):
         if i == 1:
             df.loc[i, 'Barwert Versorgung'] = an_ag_finanziert_jaehrlich_gesamt*(1+zins_zusage)
         else: df.loc[i, 'Barwert Versorgung'] = df.loc[i-1, 'Barwert Versorgung']*(1+zins_zusage)+an_ag_finanziert_jaehrlich_gesamt*(1+zins_zusage)
+
 
 #Logo
 logo_path = "ressources/demak.png"  # Adjust the path to your logo file
