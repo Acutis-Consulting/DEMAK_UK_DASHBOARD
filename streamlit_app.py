@@ -106,13 +106,14 @@ else:
 
 # Create options from 1 to x
 default_index = 0
-options = list(range(1, laufzeit + 3))
+options = list(range(1, laufzeit + 2))
 st.sidebar.title('Musterbilanz')
 # Create a selectbox with the options
 
 c1, c2 = st.sidebar.columns(2)
 with c1:
     bilanz_nach_jahren = st.selectbox('Bilanz nach X Jahren:', options, index=default_index)
+    zusaetzliche_dotierung_j_n = st.selectbox('Zusätzlich Dotierung:', ('nein', 'ja'))
 with c2:
     bilanzverlaengerung_j_n = st.selectbox('Bilanzverlängerung:', ('ja', 'nein'))
 
@@ -185,7 +186,7 @@ kapital_bei_ablauf = (pow((1+zins_zusage),laufzeit)-1)/zins_zusage*(1+zins_zusag
 davon_an = (kapital_bei_ablauf/an_ag_finanziert_jaehrlich_gesamt)*an_finanziert_jaehrlich_gesamt
 
 #Initialize Columns:
-df['Jahr'] = range(1, laufzeit + 3)
+df['Jahr'] = range(1, laufzeit +2)
 
 # initialize fields
 df['Zulässiges Kassenvemögen'] = 0 #B
@@ -208,7 +209,7 @@ df['Barwert Versorgung'] = 0 #T
 
 
 # Main loop
-for i in range(laufzeit+2):
+for i in range(laufzeit+1):
     if i == 0:
         df.loc[i, 'Zulässiges Kassenvemögen'] = (kapital_bei_ablauf / 10) * 0.25 * 8 #B
         df.loc[i, 'Höchstzulässiges Kassenvermögen'] = df.loc[i, 'Zulässiges Kassenvemögen']*1.25 #C
@@ -226,41 +227,62 @@ for i in range(laufzeit+2):
     elif i == (laufzeit):
         df.loc[i, 'Zulässiges Kassenvemögen'] = 0
         df.loc[i, 'Höchstzulässiges Kassenvermögen'] = 0
-        df.loc[i, 'Zulässige Dotierung'] = 0
+        #df.loc[i, 'Zulässige Dotierung'] = 0
         df.loc[i, 'Versorgung fällig'] = kapital_bei_ablauf
         df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins #F ###Check
-        df.loc[i,'Darlehensänderung'] = df.loc[i,'Zulässige Dotierung'] + df.loc[i,'Darlehenszinsen'] - df.loc[i-1, 'Steuern UK (e.V.)']#.shift(fill_value=0) #J ###Check
-        df.loc[i,'Tatsächliches Kassenvermögen'] = df.loc[i-1,'Tatsächliches Kassenvermögen'] + df.loc[i,'Darlehensänderung'] - df.loc[i,'Versorgung fällig'] #K
+        #df.loc[i,'Darlehensänderung'] = df.loc[i,'Zulässige Dotierung'] + df.loc[i,'Darlehenszinsen'] - df.loc[i, 'Steuern UK (e.V.)']#.shift(fill_value=0) #J ##ÄNDERUNG
+
+
+        if zusaetzliche_dotierung_j_n == 'nein': ##ÄNDERUNG
+            df.loc[i,'Darlehensänderung'] = df.loc[i-1, 'Tatsächliches Kassenvermögen']*-1 ##ÄNDERUNG
+
+
+        #df.loc[i,'Tatsächliches Kassenvermögen'] = df.loc[i-1,'Tatsächliches Kassenvermögen'] + df.loc[i,'Darlehensänderung'] - df.loc[i,'Versorgung fällig'] #K
+        df.loc[i,'Tatsächliches Kassenvermögen'] = 0 ##ÄNDERUNG
         df['Überdotierung'] = df['Tatsächliches Kassenvermögen'] - df['Höchstzulässiges Kassenvermögen'] #E
 
-        if df.loc[i, 'Überdotierung'] > 0:
-            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i, 'Überdotierung'] / df.loc[i, 'Tatsächliches Kassenvermögen']) * df.loc[i, 'Darlehenszinsen'] #G
+        if df.loc[i-1, 'Überdotierung'] > 0:
+            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i-1, 'Überdotierung'] / df.loc[i-1, 'Tatsächliches Kassenvermögen']) * df.loc[i-1, 'Darlehenszinsen'] #G
         else:
-            df.loc[i, 'Zinsanteil Überdotierung'] = 0
+            df.loc[i, 'Zinsanteil Überdotierung'] = 0 ##ÄNDERUNG
+        df.loc[i, 'Steuern UK (e.V.)'] = (df.loc[i, 'Zinsanteil Überdotierung']*steuern_UK)
+        df.loc[i, 'Zulässige Dotierung'] = kapital_bei_ablauf - df.loc[i-1,'Tatsächliches Kassenvermögen'] - df.loc[i, 'Darlehenszinsen'] + df.loc[i, 'Steuern UK (e.V.)'] #ÄNDERUNG, zeile neu hinzugefügt
+
+        if zusaetzliche_dotierung_j_n == 'ja': ##ÄNDERUNG
+            df.loc[i,'Darlehensänderung'] = df.loc[i, 'Zulässige Dotierung'] + df.loc[i, 'Darlehenszinsen'] - df.loc[i, 'Steuern UK (e.V.)'] - df.loc[i, 'Versorgung fällig']  #J ###ÄNDERUNG
 
         df.loc[df['Überdotierung'] > 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK) #H
         df.loc[i, 'EU + SV Ersparnis'] = 0
-        df.loc[i, 'Steuerersparnis'] = (-df.loc[i, 'Darlehenszinsen'])*steuer_ersparnis*-1 #O
-        df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)'].shift(fill_value=0)-df['Versorgung fällig']
+        #df.loc[i, 'Steuerersparnis'] = (-df.loc[i, 'Darlehenszinsen'])*steuer_ersparnis*-1 #O
+
+        df.loc[i, 'Kosten UK-Verwaltung'] = arbeitnehmer_anzahl*uk_verwaltung_jaehrlich_pro_an
+        df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf/10)*0.25*20*psv_beitragssatz
+        df['Steuerersparnis'] = (df['EU + SV Ersparnis']-df['PSV Beitrag']-df[ 'Kosten UK-Verwaltung']-df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O
+        df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)']-df['Versorgung fällig']
         df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq)+df.loc[i, 'Liquiditätsänderung']
         df.loc[i, 'Barwert Versorgung'] = df.loc[i-1, 'Barwert Versorgung']*(1+zins_zusage)+an_ag_finanziert_jaehrlich_gesamt*(1+zins_zusage)
         pass
 
-    elif i == (laufzeit+1):
-        df.loc[i, 'Zulässiges Kassenvemögen'] = 0
-        df.loc[i, 'Höchstzulässiges Kassenvermögen'] = 0
-        df.loc[i, 'Versorgung fällig'] = 0
-        df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins
-        df.loc[i, 'Zinsanteil Überdotierung'] = df.loc[i, 'Darlehenszinsen']
-        df.loc[i, 'Steuern UK (e.V.)'] = (df.loc[i, 'Zinsanteil Überdotierung']*steuern_UK)
-        df.loc[i,'Darlehensänderung'] = df.loc[i,'Darlehenszinsen'] - df.loc[i-1, 'Steuern UK (e.V.)'] - df.loc[i, 'Steuern UK (e.V.)']
-        df.loc[i,'Tatsächliches Kassenvermögen'] = df.loc[i-1,'Tatsächliches Kassenvermögen'] + df.loc[i,'Darlehensänderung'] - df.loc[i,'Versorgung fällig'] #K
-        df['Überdotierung'] = df['Tatsächliches Kassenvermögen'] - df['Höchstzulässiges Kassenvermögen'] #E
-        df.loc[i, 'EU + SV Ersparnis'] = 0
-        df.loc[i, 'Steuerersparnis'] = df.loc[i, 'Tatsächliches Kassenvermögen']*steuer_ersparnis*-1 #O
-        df.loc[i, 'Liquiditätsänderung'] = (df.loc[i,'Tatsächliches Kassenvermögen']*steuer_ersparnis)*-1- df.loc[i-1, 'Steuern UK (e.V.)'] - df.loc[i, 'Steuern UK (e.V.)']
-        df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq)+df.loc[i, 'Liquiditätsänderung']
-        df.loc[i, 'Barwert Versorgung'] = 0
+    #elif i == (laufzeit+1):
+        #df.loc[i, 'Zulässiges Kassenvemögen'] = 0
+        #df.loc[i, 'Höchstzulässiges Kassenvermögen'] = 0
+        #df.loc[i, 'Versorgung fällig'] = 0
+        #df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins
+        #if df.loc[i-1, 'Überdotierung'] > 0:
+        #    df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i-1, 'Überdotierung'] / df.loc[i-1, 'Tatsächliches Kassenvermögen']) * df.loc[i-1, 'Darlehenszinsen'] #G
+        #else:
+        #    df.loc[i, 'Zinsanteil Überdotierung'] = 0 ##ÄNDERUNG
+        #df.loc[i, 'Steuern UK (e.V.)'] = (df.loc[i, 'Zinsanteil Überdotierung']*steuern_UK)
+        #df.loc[i,'Darlehensänderung'] = 0
+        #df.loc[i,'Darlehensänderung'] = df.loc[i,'Darlehenszinsen'] - df.loc[i-1, 'Steuern UK (e.V.)'] - df.loc[i, 'Steuern UK (e.V.)']
+        #df.loc[i,'Tatsächliches Kassenvermögen'] = df.loc[i-1,'Tatsächliches Kassenvermögen'] + df.loc[i,'Darlehensänderung'] - df.loc[i,'Versorgung fällig'] #K
+        #df['Überdotierung'] = df['Tatsächliches Kassenvermögen'] - df['Höchstzulässiges Kassenvermögen'] #E
+        #df.loc[i, 'EU + SV Ersparnis'] = 0
+        #df.loc[i, 'Steuerersparnis'] = df.loc[i, 'Tatsächliches Kassenvermögen']*steuer_ersparnis*-1 #O
+        #df['Steuerersparnis'] = (df['EU + SV Ersparnis']-df['PSV Beitrag']-df[ 'Kosten UK-Verwaltung']-df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O ###ANGEPASST
+        #df.loc[i, 'Liquiditätsänderung'] = (df.loc[i,'Tatsächliches Kassenvermögen']*steuer_ersparnis)*-1- df.loc[i-1, 'Steuern UK (e.V.)'] - df.loc[i, 'Steuern UK (e.V.)']
+        #df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq)+df.loc[i, 'Liquiditätsänderung']
+        #df.loc[i, 'Barwert Versorgung'] = 0
 
     else:
         # calculations for subsequent years
@@ -286,20 +308,23 @@ for i in range(laufzeit+2):
         else:
             df.loc[i,'Zulässige Dotierung'] = 0
 
-        df['Darlehensänderung'] = df['Zulässige Dotierung'] + df['Darlehenszinsen'] - df['Steuern UK (e.V.)'].shift(fill_value=0) #J ###Check
+
+        if df.loc[i-1, 'Überdotierung'] > 0:
+            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i-1, 'Überdotierung'] / df.loc[i-1, 'Tatsächliches Kassenvermögen']) * df.loc[i-1, 'Darlehenszinsen'] #G
+        else:
+            df.loc[i, 'Zinsanteil Überdotierung'] = 0 ##ÄNDERUNG
+
+        df.loc[df['Überdotierung'] > 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK) #H
+
+        df['Darlehensänderung'] = df['Zulässige Dotierung'] + df['Darlehenszinsen'] - df['Steuern UK (e.V.)'] #J ###ÄNDERUNG
         df.loc[i,'Tatsächliches Kassenvermögen'] = df.loc[i-1,'Tatsächliches Kassenvermögen'] + df.loc[i,'Darlehensänderung'] - df.loc[i,'Versorgung fällig'] #K
         df['Überdotierung'] = df['Tatsächliches Kassenvermögen'] - df['Höchstzulässiges Kassenvermögen'] #E
 
-        if df.loc[i, 'Überdotierung'] > 0:
-            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i, 'Überdotierung'] / df.loc[i, 'Tatsächliches Kassenvermögen']) * df.loc[i, 'Darlehenszinsen'] #G
-        else:
-            df.loc[i, 'Zinsanteil Überdotierung'] = 0
 
-        df.loc[df['Überdotierung'] > 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK) #H
         df.loc[i, 'Kosten UK-Verwaltung'] = arbeitnehmer_anzahl*uk_verwaltung_jaehrlich_pro_an #L
         df['EU + SV Ersparnis'] = an_finanziert_jaehrlich_gesamt*1.2 #N
         df['Steuerersparnis'] = (df['EU + SV Ersparnis']-df['PSV Beitrag']-df[ 'Kosten UK-Verwaltung']-df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O
-        df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)'].shift(fill_value=0) #P #Check if we have to make a different case for row 1
+        df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)'] #P #Check if we have to make a different case for row 1
         df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq)+df.loc[i, 'Liquiditätsänderung'] #Q
 
         if i == 1:
@@ -464,7 +489,7 @@ vorraete_2 = vorraete
 kurzfristige_forderungen_2 = kurzfristige_forderungen
 
 if bilanzverlaengerung_j_n == 'ja':
-    if bilanz_nach_jahren == laufzeit+2:
+    if bilanz_nach_jahren == laufzeit+1:
         zahlungsmittel_2 = df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität'] + zahlungsmittel
     else:
         zahlungsmittel_2 = df.loc[bilanz_nach_jahren, 'Anlage Liquidität'] + zahlungsmittel
@@ -473,14 +498,14 @@ elif bilanzverlaengerung_j_n == 'nein':
 else:
     zahlungsmittel_2 = 0
 
-umlaufvermögen_2 = vorraete_2 + kurzfristige_forderungen_2 + zahlungsmittel_2
-gesamtkapital_aktiva_2 = anlagevermoegen + umlaufvermögen_2
-fk_kurzfristig_2 = fk_kurzfristig
+##umlaufvermögen_2 = vorraete_2 + kurzfristige_forderungen_2 + zahlungsmittel_2
+##gesamtkapital_aktiva_2 = anlagevermoegen + umlaufvermögen_2
+##fk_kurzfristig_2 = fk_kurzfristig
 
 if bilanzverlaengerung_j_n == 'ja':
     fk_kurzfristig_2 = fk_kurzfristig
 elif bilanzverlaengerung_j_n == 'nein':
-    if bilanz_nach_jahren == laufzeit+2:
+    if bilanz_nach_jahren == laufzeit+1:
         fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität']
         if fk_kurzfristig_2 < 0:
             zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
@@ -493,19 +518,23 @@ elif bilanzverlaengerung_j_n == 'nein':
 else:
     fk_kurzfristig_2 = 0
 
-if bilanz_nach_jahren == laufzeit+2:
+if bilanz_nach_jahren == laufzeit+1:
     fk_langfristig_2 = fk_langfristig
 else:
     fk_langfristig_2 = fk_langfristig + df.loc[bilanz_nach_jahren, 'Tatsächliches Kassenvermögen']
-if bilanz_nach_jahren != laufzeit+2:
-    if (df.loc[bilanz_nach_jahren, 'Barwert Versorgung']-df.loc[bilanz_nach_jahren, 'Tatsächliches Kassenvermögen'])>0:
+if bilanz_nach_jahren != laufzeit+1:
+    if (df.loc[bilanz_nach_jahren-1, 'Barwert Versorgung']-df.loc[bilanz_nach_jahren-1, 'Tatsächliches Kassenvermögen'])>0:
         bilanzanhang_2 = df.loc[bilanz_nach_jahren, 'Barwert Versorgung']-df.loc[bilanz_nach_jahren, 'Tatsächliches Kassenvermögen']
     else:
         bilanzanhang_2 = 0
 else:
     bilanzanhang_2 = 0
 
-fremdkapital_2 = fk_kurzfristig_2 + fk_langfristig_2 + bilanzanhang_2
+umlaufvermögen_2 = vorraete_2 + kurzfristige_forderungen_2 + zahlungsmittel_2
+gesamtkapital_aktiva_2 = anlagevermoegen + umlaufvermögen_2
+#fk_kurzfristig_2 = fk_kurzfristig
+
+fremdkapital_2 = fk_kurzfristig_2 + fk_langfristig_2 #+ bilanzanhang_2
 eigenkapital_2 = gesamtkapital_aktiva_2 - fremdkapital_2
 gesamtkapital_passiva_2 = eigenkapital_2 + fremdkapital_2
 
@@ -526,13 +555,13 @@ with passiva_label:
     st.subheader("2 Fremdkapital")
     st.subheader("2.1 kurzfristig (FK kurzfr.)")
     st.subheader("2.2 langfristig (FK langfr.)")
-    st.subheader("3 Bilanzanhang")
+    #st.subheader("3 Bilanzanhang")
 with passiva_value:
     st.subheader(format_german(eigenkapital_2))
     st.subheader(format_german(fremdkapital_2))
     st.subheader(format_german(fk_kurzfristig_2))
     st.subheader(format_german(fk_langfristig_2))
-    st.subheader(format_german(bilanzanhang_2))
+    #st.subheader(format_german(bilanzanhang_2))
 
 st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
 
@@ -546,9 +575,13 @@ with gk_aktiva_value:
     #st.subheader(f'{gesamtkapital_aktiva_2:,}'.replace(',','.'))
 with gk_passiva_label:
     st.subheader("Gesamtkapital Passiva")
+    st.subheader("_Bilanzanhang_")
 with gk_passiva_value:
     formatted = gesamtkapital_passiva_2 #locale.format_string("%d", gesamtkapital_passiva_2, grouping=True)
     st.subheader(format_german(gesamtkapital_passiva_2))
+    st.subheader(format_german(bilanzanhang_2))
+
+
 
 #Finanzwirtschaftliche Bilanzkennzahlen
 eigenkapital_quote_2 = safe_division(eigenkapital_2,gesamtkapital_passiva_2)
