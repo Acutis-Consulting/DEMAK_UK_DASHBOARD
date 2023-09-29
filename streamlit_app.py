@@ -54,6 +54,7 @@ if uploaded_file:
     uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlich pro AN',min_value=0,value=uploaded_data.get('uk_verwaltung_jaehrlich_pro_an'))
     uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=uploaded_data.get('uk_verwaltung_einmalig_im_ersten_jahr'))/100)
     p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=uploaded_data.get('p1_anlage_liq'))/100)
+    beitragsbemessungsgrenze = st.sidebar.number_input('Beitragsbemessungsgrenze pro Monat (€)',min_value=0,value=uploaded_data.get('beitragsbemessungsgrenze'))
 
 else:
     arbeitnehmer_anzahl = st.sidebar.number_input('Arbeitnehmeranzahl (AN)',min_value=0,value=100)
@@ -66,6 +67,7 @@ else:
     uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlich pro AN',min_value=0,value=89)
     uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=2.00)/100)
     p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=0.0)/100)
+    beitragsbemessungsgrenze = st.sidebar.number_input('Beitragsbemessungsgrenze pro Monat (€)',min_value=0,value=7300) #7.300*12*0,04=3.504
 
 steuern_UK = 0.1583 #(st.sidebar.number_input('Steuern UK (e.V.) (%)',min_value=0.0,value=15.83)/100)
 steuer_ersparnis = 0.3 #(st.sidebar.number_input('Steuerersparnis (%)',min_value=0.0,value=30.00)/100)
@@ -113,9 +115,10 @@ st.sidebar.title('Musterbilanz')
 c1, c2 = st.sidebar.columns(2)
 with c1:
     bilanz_nach_jahren = st.selectbox('Bilanz nach X Jahren:', options, index=default_index)
-    zusaetzliche_dotierung_j_n = st.selectbox('Zusätzlich Dotierung:', ('nein', 'ja'))
+    show_previous_balance_sheet = st.selectbox('Bilanzkennzahlen einblenden:', ('nein','ja'))
 with c2:
     bilanzverlaengerung_j_n = st.selectbox('Bilanzverlängerung:', ('ja', 'nein'))
+    bilanzanhang_einblenden = st.selectbox('Bilanzanhang einblenden:', ('nein', 'ja'))
 
 # Define flags for each metric's visibility
 st.sidebar.title('Finanzwirtschaftliche Bilanzkennzahlen')
@@ -153,7 +156,8 @@ if st.sidebar.button('Parameter Speichern'):
         'Kurzfristige Forderungen': kurzfristige_forderungen,
         'Zahlungsmittel': zahlungsmittel,
         'kurzfristig (FK kurzfr.)': fk_kurzfristig,
-        'langfristig (FK langfr.)': fk_langfristig
+        'langfristig (FK langfr.)': fk_langfristig,
+        'beitragsbemessungsgrenze': beitragsbemessungsgrenze
     }
 
     # Convert dictionary to JSON string
@@ -180,6 +184,7 @@ gesamtkapital_passiva = eigenkapital + fremdkapital
 # Create Dataframe
 df = pd.DataFrame()
 an_finanziert_jaehrlich_gesamt = arbeitnehmer_anzahl * an_fin_jaehrlich_pro_an
+an_finanziert_jaehrlich_gesamt_max_sv_frei = arbeitnehmer_anzahl * (beitragsbemessungsgrenze*12*0.04)
 ag_finanziert_jaehrlich_gesamt = arbeitnehmer_anzahl * ag_fin_jaehrlich_pro_an
 an_ag_finanziert_jaehrlich_gesamt = an_finanziert_jaehrlich_gesamt+ag_finanziert_jaehrlich_gesamt
 kapital_bei_ablauf = (pow((1+zins_zusage),laufzeit)-1)/zins_zusage*(1+zins_zusage)*an_ag_finanziert_jaehrlich_gesamt
@@ -217,7 +222,7 @@ for i in range(laufzeit+1):
         df.loc[i, 'Tatsächliches Kassenvermögen'] =df.loc[i, 'Zulässige Dotierung']
         df.loc[i, 'PSV Beitrag'] = (davon_an/10)*0.25*20*psv_beitragssatz #M
         df.loc[i, 'Kosten UK-Verwaltung'] = (kapital_bei_ablauf*uk_verwaltung_einmalig_im_ersten_jahr)+(arbeitnehmer_anzahl*uk_verwaltung_jaehrlich_pro_an)
-        df.loc[i, 'EU + SV Ersparnis'] = an_finanziert_jaehrlich_gesamt*1.2
+        df.loc[i, 'EU + SV Ersparnis'] = min(an_finanziert_jaehrlich_gesamt*1.2,an_finanziert_jaehrlich_gesamt_max_sv_frei*1.2) + max(0,(an_finanziert_jaehrlich_gesamt-an_finanziert_jaehrlich_gesamt_max_sv_frei)) #
         df.loc[i, 'Steuerersparnis'] = (df.loc[i, 'EU + SV Ersparnis']-df.loc[i,'PSV Beitrag']-df.loc[i,'Kosten UK-Verwaltung']-df.loc[i,'Zulässige Dotierung'])*steuer_ersparnis*-1
         df.loc[i, 'Liquiditätsänderung'] = df.loc[i, 'EU + SV Ersparnis']+ df.loc[i,'Steuerersparnis']-df.loc[i, 'PSV Beitrag']-df.loc[i, 'Kosten UK-Verwaltung']
         df.loc[i, 'Anlage Liquidität'] = df.loc[i, 'Liquiditätsänderung']
@@ -233,8 +238,8 @@ for i in range(laufzeit+1):
         #df.loc[i,'Darlehensänderung'] = df.loc[i,'Zulässige Dotierung'] + df.loc[i,'Darlehenszinsen'] - df.loc[i, 'Steuern UK (e.V.)']#.shift(fill_value=0) #J ##ÄNDERUNG
 
 
-        if zusaetzliche_dotierung_j_n == 'nein': ##ÄNDERUNG
-            df.loc[i,'Darlehensänderung'] = df.loc[i-1, 'Tatsächliches Kassenvermögen']*-1 ##ÄNDERUNG
+        #if zusaetzliche_dotierung_j_n == 'nein': ##ÄNDERUNG
+        #df.loc[i,'Darlehensänderung'] = df.loc[i-1, 'Tatsächliches Kassenvermögen']*-1 ##ÄNDERUNG
 
 
         #df.loc[i,'Tatsächliches Kassenvermögen'] = df.loc[i-1,'Tatsächliches Kassenvermögen'] + df.loc[i,'Darlehensänderung'] - df.loc[i,'Versorgung fällig'] #K
@@ -248,8 +253,8 @@ for i in range(laufzeit+1):
         df.loc[i, 'Steuern UK (e.V.)'] = (df.loc[i, 'Zinsanteil Überdotierung']*steuern_UK)
         df.loc[i, 'Zulässige Dotierung'] = kapital_bei_ablauf - df.loc[i-1,'Tatsächliches Kassenvermögen'] - df.loc[i, 'Darlehenszinsen'] + df.loc[i, 'Steuern UK (e.V.)'] #ÄNDERUNG, zeile neu hinzugefügt
 
-        if zusaetzliche_dotierung_j_n == 'ja': ##ÄNDERUNG
-            df.loc[i,'Darlehensänderung'] = df.loc[i, 'Zulässige Dotierung'] + df.loc[i, 'Darlehenszinsen'] - df.loc[i, 'Steuern UK (e.V.)'] - df.loc[i, 'Versorgung fällig']  #J ###ÄNDERUNG
+        #if zusaetzliche_dotierung_j_n == 'ja': ##ÄNDERUNG
+        df.loc[i,'Darlehensänderung'] = df.loc[i, 'Zulässige Dotierung'] + df.loc[i, 'Darlehenszinsen'] - df.loc[i, 'Steuern UK (e.V.)'] - df.loc[i, 'Versorgung fällig']  #J ###ÄNDERUNG
 
         df.loc[df['Überdotierung'] > 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK) #H
         df.loc[i, 'EU + SV Ersparnis'] = 0
@@ -322,7 +327,7 @@ for i in range(laufzeit+1):
 
 
         df.loc[i, 'Kosten UK-Verwaltung'] = arbeitnehmer_anzahl*uk_verwaltung_jaehrlich_pro_an #L
-        df['EU + SV Ersparnis'] = an_finanziert_jaehrlich_gesamt*1.2 #N
+        df.loc[i, 'EU + SV Ersparnis'] = min(an_finanziert_jaehrlich_gesamt*1.2,an_finanziert_jaehrlich_gesamt_max_sv_frei*1.2) + max(0,(an_finanziert_jaehrlich_gesamt-an_finanziert_jaehrlich_gesamt_max_sv_frei)) #
         df['Steuerersparnis'] = (df['EU + SV Ersparnis']-df['PSV Beitrag']-df[ 'Kosten UK-Verwaltung']-df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O
         df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)'] #P #Check if we have to make a different case for row 1
         df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq)+df.loc[i, 'Liquiditätsänderung'] #Q
@@ -441,22 +446,22 @@ col1, col2, col3, col4, col5 = st.columns(5)
 
 if show_eigenkapital_quote:
     col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_1))
-if show_liquiditaet_2_grades:
-    col1.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_1))
+if show_intensitaet_langfristiges_kapital:
+    col1.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_1))
+if show_liquiditaet_1_grades:
+    col2.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_1))
 if show_anspannungsgrad:
     col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_1))
-if show_liquiditaet_3_grades:
-    col2.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_1))
+if show_liquiditaet_2_grades:
+    col3.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_1))
 if show_statischer_verschuldungsgrad:
     col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_1))
-if show_net_working_capital:
-    col3.metric("Net Working Capital", format_german(net_working_capital_1))
-if show_intensitaet_langfristiges_kapital:
-    col4.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_1))
+if show_liquiditaet_3_grades:
+    col4.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_1))
 if show_deckungsgrad_a:
     col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_1))
-if show_liquiditaet_1_grades:
-    col5.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_1))
+if show_net_working_capital:
+    col5.metric("Net Working Capital", format_german(net_working_capital_1))
 if show_deckungsgrad_b:
     col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_1))
 
@@ -575,11 +580,13 @@ with gk_aktiva_value:
     #st.subheader(f'{gesamtkapital_aktiva_2:,}'.replace(',','.'))
 with gk_passiva_label:
     st.subheader("Gesamtkapital Passiva")
-    st.subheader("_Bilanzanhang_")
+    if bilanzanhang_einblenden == "ja":
+        st.subheader("_Bilanzanhang_")
 with gk_passiva_value:
     formatted = gesamtkapital_passiva_2 #locale.format_string("%d", gesamtkapital_passiva_2, grouping=True)
     st.subheader(format_german(gesamtkapital_passiva_2))
-    st.subheader(format_german(bilanzanhang_2))
+    if bilanzanhang_einblenden == "ja":
+        st.subheader(format_german(bilanzanhang_2))
 
 
 
@@ -606,27 +613,53 @@ net_working_capital_2_change = safe_division(net_working_capital_2,net_working_c
 deckungsgrad_a_2_change = safe_division(deckungsgrad_a_2,deckungsgrad_a_1)-1
 deckungsgrad_b_2_change = safe_division(deckungsgrad_b_2,deckungsgrad_b_1)-1
 
+
+if show_previous_balance_sheet == "ja":
+    st.title("   ")
+    st.title("Finanzwirtschaftliche Bilanzkennzahlen Eröffnungsbilanz")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    if show_eigenkapital_quote:
+        col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_1))
+    if show_intensitaet_langfristiges_kapital:
+        col1.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_1))
+    if show_liquiditaet_1_grades:
+        col2.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_1))
+    if show_anspannungsgrad:
+        col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_1))
+    if show_liquiditaet_2_grades:
+        col3.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_1))
+    if show_statischer_verschuldungsgrad:
+        col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_1))
+    if show_liquiditaet_3_grades:
+        col4.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_1))
+    if show_deckungsgrad_a:
+        col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_1))
+    if show_net_working_capital:
+        col5.metric("Net Working Capital", format_german(net_working_capital_1))
+    if show_deckungsgrad_b:
+        col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_1))
+
 st.title("   ")
-st.title("Finanzwirtschaftliche Bilanzkennzahlen")
+st.title("Finanzwirtschaftliche Bilanzkennzahlen nach "+ f"{bilanz_nach_jahren}" + " Jahren")
 col1, col2, col3, col4, col5 = st.columns(5)
 if show_eigenkapital_quote:
     col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_2), to_percentage(eigenkapital_quote_2_change))
-if show_liquiditaet_2_grades:
-    col1.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_2), to_percentage(liquiditaet_2_grades_2_change))
+if show_intensitaet_langfristiges_kapital:
+    col1.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_2), to_percentage(intensitaet_langfristiges_kapital_2_change))
+if show_liquiditaet_1_grades:
+    col2.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_2), to_percentage(liquiditaet_1_grades_2_change))
 if show_anspannungsgrad:
     col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_2), to_percentage(anspannungsgrad_2_change))
-if show_liquiditaet_3_grades:
-    col2.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_2), to_percentage(liquiditaet_3_grades_2_change))
+if show_liquiditaet_2_grades:
+    col3.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_2), to_percentage(liquiditaet_2_grades_2_change))
 if show_statischer_verschuldungsgrad:
     col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_2), to_percentage(statischer_verschuldungsgrad_2_change))
-if show_net_working_capital:
-    col3.metric("Net Working Capital", format_german(net_working_capital_2), to_percentage(net_working_capital_2_change))
-if show_intensitaet_langfristiges_kapital:
-    col4.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_2), to_percentage(intensitaet_langfristiges_kapital_2_change))
+if show_liquiditaet_3_grades:
+    col4.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_2), to_percentage(liquiditaet_3_grades_2_change))
 if show_deckungsgrad_a:
     col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_2), to_percentage(deckungsgrad_a_2_change))
-if show_liquiditaet_1_grades:
-    col5.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_2), to_percentage(liquiditaet_1_grades_2_change))
+if show_net_working_capital:
+    col5.metric("Net Working Capital", format_german(net_working_capital_2), to_percentage(net_working_capital_2_change))
 if show_deckungsgrad_b:
     col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_2), to_percentage(deckungsgrad_b_2_change))
 
@@ -652,3 +685,4 @@ div[data-testid="metric-container"] > label[data-testid="stMetricLabel"] > div {
 </style>
 """
             , unsafe_allow_html=True)
+
