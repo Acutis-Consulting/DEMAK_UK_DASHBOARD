@@ -663,5 +663,26 @@ if show_net_working_capital:
 if show_deckungsgrad_b:
     col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_2), to_percentage(deckungsgrad_b_2_change))
 
+###Markdowns
+st.markdown("""
+<style>
+div[data-testid="metric-container"] {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    padding: 5% 5% 5% 10%;
+    border-radius: 15px;
+    border-left: 0.5rem solid #fdff00 !important;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+   overflow-wrap: break-word;
+}
 
+/* breakline for metric text         */
+div[data-testid="metric-container"] > label[data-testid="stMetricLabel"] > div {
+   overflow-wrap: break-word;
+   white-space: break-spaces;
+   color: black;
+}
+</style>
+"""
+            , unsafe_allow_html=True)
 
