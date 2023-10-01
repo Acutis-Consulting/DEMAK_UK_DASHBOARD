@@ -676,7 +676,6 @@ div[data-testid="metric-container"] {
    overflow-wrap: break-word;
 }
 
-
 </style>
 """
             , unsafe_allow_html=True)
