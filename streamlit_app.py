@@ -676,12 +676,7 @@ div[data-testid="metric-container"] {
    overflow-wrap: break-word;
 }
 
-/* breakline for metric text         */
-div[data-testid="metric-container"] > label[data-testid="stMetricLabel"] > div {
-   overflow-wrap: break-word;
-   white-space: break-spaces;
-   color: black;
-}
+
 </style>
 """
             , unsafe_allow_html=True)
