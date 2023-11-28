@@ -353,17 +353,10 @@ for i in range(laufzeit_max+1):
         else:
             df.loc[i, 'Zinsanteil Überdotierung'] = 0 ##ÄNDERUNG
 
-
-
         df.loc[df['Überdotierung'] >= 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK) #H
         if (i == laufzeit_g1 or i == laufzeit_g2 or i == laufzeit_g3):# and df.loc[i-1, 'Tatsächliches Kassenvermögen'] <= df.loc[i,'Versorgung fällig']:
-            df.loc[i,'Zulässige Dotierung'] = max(df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i-1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)'],0)
-
-
-
-
-
-
+            df.loc[i,'Zulässige Dotierung'] = df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i-1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)']
+            #df.loc[i,'Zulässige Dotierung'] = max(df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i-1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)'],0)
 
         #if zusaetzliche_dotierung_j_n == 'ja': ##ÄNDERUNG
         df.loc[i,'Darlehensänderung'] = df.loc[i, 'Zulässige Dotierung'] + df.loc[i, 'Darlehenszinsen'] - df.loc[i, 'Steuern UK (e.V.)'] - df.loc[i, 'Versorgung fällig']  #J ###ÄNDERUNG
@@ -372,24 +365,31 @@ for i in range(laufzeit_max+1):
         df.loc[i, 'EU + SV Ersparnis'] = 0
         #df.loc[i, 'Steuerersparnis'] = (-df.loc[i, 'Darlehenszinsen'])*steuer_ersparnis*-1 #O
 
-        if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
+        if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
             df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g2+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
-        elif i < laufzeit_g1 and i < laufzeit_g2:
+            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
             df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g2)*uk_verwaltung_jaehrlich_pro_an
-        elif i < laufzeit_g1:
+            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2)/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g2+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+            df.loc[i, 'PSV Beitrag'] = ((davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g1 and i < laufzeit_g3:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+            df.loc[i, 'PSV Beitrag'] = ((1+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g1+1:
             df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1)*uk_verwaltung_jaehrlich_pro_an
+            df.loc[i, 'PSV Beitrag'] = (davon_an_g1/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g2+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g2)*uk_verwaltung_jaehrlich_pro_an
+            df.loc[i, 'PSV Beitrag'] = (davon_an_g2/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+            df.loc[i, 'PSV Beitrag'] = (davon_an_g3/10)*0.25*20*psv_beitragssatz
         else:
             df.loc[i, 'Kosten UK-Verwaltung'] = 0
 
-        #df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf/10)*0.25*20*psv_beitragssatz ###vorGruppen
-        if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
-            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
-        elif i < laufzeit_g1 and i < laufzeit_g2:
-            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2)/10)*0.25*20*psv_beitragssatz
-        elif i < laufzeit_g1:
-            df.loc[i, 'PSV Beitrag'] = (davon_an_g1/10)*0.25*20*psv_beitragssatz
-        else:
-            df.loc[i, 'PSV Beitrag'] = 0
+
         df['Steuerersparnis'] = (df['EU + SV Ersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O
         df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)']-df['Versorgung fällig']
         df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq)+df.loc[i, 'Liquiditätsänderung']
@@ -403,29 +403,40 @@ for i in range(laufzeit_max+1):
             df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g2+kapital_bei_ablauf_g3) / 10) * 0.25 * 8 #B
         elif i < laufzeit_g1 and i < laufzeit_g2:
             df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g2) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g2+kapital_bei_ablauf_g3) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g1 and i < laufzeit_g3:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g3) / 10) * 0.25 * 8 #B
         elif i < laufzeit_g1:
             df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g1) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g2:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g2) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g3:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g3) / 10) * 0.25 * 8 #B
         else:
             df.loc[i, 'Zulässiges Kassenvemögen'] = 0
+
+        if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
+            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
+            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2)/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g2+1 and i < laufzeit_g3+1:
+            df.loc[i, 'PSV Beitrag'] = ((davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g1+1 and i < laufzeit_g3+1:
+            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g1+1:
+            df.loc[i, 'PSV Beitrag'] = (davon_an_g1/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g2+1:
+            df.loc[i, 'PSV Beitrag'] = (davon_an_g2/10)*0.25*20*psv_beitragssatz
+        elif i < laufzeit_g3+1:
+            df.loc[i, 'PSV Beitrag'] = (davon_an_g3/10)*0.25*20*psv_beitragssatz
+        else:
+            df.loc[i, 'PSV Beitrag'] = 0
 
         #df.loc[i, 'Zulässiges Kassenvemögen'] = (kapital_bei_ablauf_gesamt / 10) * 0.25 * 8 #B
         df.loc[i, 'Höchstzulässiges Kassenvermögen'] = df.loc[i, 'Zulässiges Kassenvemögen']*1.25 #C
 
-        ###vorGruppen
-        #if i > 2:
-        #    df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf/10)*0.25*20*psv_beitragssatz
-        #else:
-        #    df.loc[i, 'PSV Beitrag'] = (davon_an/10)*0.25*20*psv_beitragssatz  #M
-        ###
 
-        if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
-            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
-        elif i < laufzeit_g1 and i < laufzeit_g2:
-            df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2)/10)*0.25*20*psv_beitragssatz
-        elif i < laufzeit_g1:
-            df.loc[i, 'PSV Beitrag'] = (davon_an_g1/10)*0.25*20*psv_beitragssatz
-        else:
-            df.loc[i, 'PSV Beitrag'] = 0
 
         df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins #F ###Check
 
@@ -454,6 +465,7 @@ for i in range(laufzeit_max+1):
                 df.loc[i,'Zulässige Dotierung'] = 0
         else:
             df.loc[i,'Zulässige Dotierung'] = 0
+
         if (i == laufzeit_g1 or i == laufzeit_g2 or i == laufzeit_g3):# and df.loc[i-1, 'Tatsächliches Kassenvermögen'] <= df.loc[i,'Versorgung fällig']:
             df.loc[i,'Zulässige Dotierung'] = max(df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i-1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)'],0)
 
@@ -467,17 +479,46 @@ for i in range(laufzeit_max+1):
 
         #df.loc[i, 'Kosten UK-Verwaltung'] = arbeitnehmer_anzahl_gesamt*uk_verwaltung_jaehrlich_pro_an #L
 
-        if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
+        if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
             df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g2+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3))) #
-        elif i < laufzeit_g1 and i < laufzeit_g2:
+        elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
             df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g2)*uk_verwaltung_jaehrlich_pro_an
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2))) #
-        elif i < laufzeit_g1:
+        elif i < laufzeit_g2+1 and i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g2+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g1+1 and i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g1+1:
             df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1)*uk_verwaltung_jaehrlich_pro_an
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1)-(an_finanziert_jaehrlich_max_sv_frei_g1))) #
+        elif i < laufzeit_g2+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g2)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
         else:
             df.loc[i, 'Kosten UK-Verwaltung'] = 0
+
+
+
+        if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3))) #
+        elif i < laufzeit_g1 and i < laufzeit_g2:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)))
+        elif i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)))
+        elif i < laufzeit_g1 and i < laufzeit_g3:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g3)))
+        elif i < laufzeit_g1:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1)-(an_finanziert_jaehrlich_max_sv_frei_g1))) #
+        elif i < laufzeit_g2:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g2)-(an_finanziert_jaehrlich_max_sv_frei_g2))) #
+        elif i < laufzeit_g3:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g3))) #
+        else:
+            df.loc[i, 'EU + SV Ersparnis'] = 0
+
+
+
+
+
 
         #df.loc[i, 'EU + SV Ersparnis'] = min(an_finanziert_jaehrlich_gesamt*1.2,an_finanziert_jaehrlich_gesamt_max_sv_frei*1.2) + max(0,(an_finanziert_jaehrlich_gesamt-an_finanziert_jaehrlich_gesamt_max_sv_frei)) #
         df['Steuerersparnis'] = (df['EU + SV Ersparnis']-df['PSV Beitrag']-df[ 'Kosten UK-Verwaltung']-df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O
@@ -489,21 +530,17 @@ for i in range(laufzeit_max+1):
             df.loc[i, 'Barwert Versorgung Gruppe 2'] = an_ag_finanziert_jaehrlich_g2*(1+zins_zusage_g2)
             df.loc[i, 'Barwert Versorgung Gruppe 3'] = an_ag_finanziert_jaehrlich_g3*(1+zins_zusage_g3)
         else:
-            if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
+            if i < laufzeit_g1:
                 df.loc[i, 'Barwert Versorgung Gruppe 1'] = df.loc[i-1, 'Barwert Versorgung Gruppe 1']*(1+zins_zusage_g1) + an_ag_finanziert_jaehrlich_g1*(1+zins_zusage_g1)
-                df.loc[i, 'Barwert Versorgung Gruppe 2'] = df.loc[i-1, 'Barwert Versorgung Gruppe 2']*(1+zins_zusage_g2) + an_ag_finanziert_jaehrlich_g2*(1+zins_zusage_g2)
-                df.loc[i, 'Barwert Versorgung Gruppe 3'] = df.loc[i-1, 'Barwert Versorgung Gruppe 3']*(1+zins_zusage_g3) + an_ag_finanziert_jaehrlich_g3*(1+zins_zusage_g3)
-            elif i < laufzeit_g1 and i < laufzeit_g2:
-                df.loc[i, 'Barwert Versorgung Gruppe 1'] = 0
-                df.loc[i, 'Barwert Versorgung Gruppe 2'] = df.loc[i-1, 'Barwert Versorgung Gruppe 2']*(1+zins_zusage_g2) + an_ag_finanziert_jaehrlich_g2*(1+zins_zusage_g2)
-                df.loc[i, 'Barwert Versorgung Gruppe 3'] = df.loc[i-1, 'Barwert Versorgung Gruppe 3']*(1+zins_zusage_g3) + an_ag_finanziert_jaehrlich_g3*(1+zins_zusage_g3)
-            elif i < laufzeit_g1:
-                df.loc[i, 'Barwert Versorgung Gruppe 1'] = 0
-                df.loc[i, 'Barwert Versorgung Gruppe 2'] = 0
-                df.loc[i, 'Barwert Versorgung Gruppe 3'] = df.loc[i-1, 'Barwert Versorgung Gruppe 3']*(1+zins_zusage_g3) + an_ag_finanziert_jaehrlich_g3*(1+zins_zusage_g3)
             else:
                 df.loc[i, 'Barwert Versorgung Gruppe 1'] = 0
+            if i < laufzeit_g2:
+                df.loc[i, 'Barwert Versorgung Gruppe 2'] = df.loc[i-1, 'Barwert Versorgung Gruppe 2']*(1+zins_zusage_g2) + an_ag_finanziert_jaehrlich_g2*(1+zins_zusage_g2)
+            else:
                 df.loc[i, 'Barwert Versorgung Gruppe 2'] = 0
+            if i < laufzeit_g3:
+                df.loc[i, 'Barwert Versorgung Gruppe 3'] = df.loc[i-1, 'Barwert Versorgung Gruppe 3']*(1+zins_zusage_g3) + an_ag_finanziert_jaehrlich_g3*(1+zins_zusage_g3)
+            else:
                 df.loc[i, 'Barwert Versorgung Gruppe 3'] = 0
 
         df.loc[i, 'Barwert Versorgung gesamt'] = df.loc[i, 'Barwert Versorgung Gruppe 1'] + df.loc[i, 'Barwert Versorgung Gruppe 2'] + df.loc[i, 'Barwert Versorgung Gruppe 3']
