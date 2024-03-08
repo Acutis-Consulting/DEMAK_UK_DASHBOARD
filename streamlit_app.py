@@ -499,21 +499,22 @@ for i in range(laufzeit_max+1):
 
 
         if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3))) #
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g2+an_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g2+an_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3))) #
         elif i < laufzeit_g1 and i < laufzeit_g2:
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g2)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)))
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g2)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)))
         elif i < laufzeit_g2 and i < laufzeit_g3:
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g2+an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)))
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g2+an_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_finanziert_jaehrlich_g2+an_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)))
         elif i < laufzeit_g1 and i < laufzeit_g3:
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1+an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g3)))
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g3)))
         elif i < laufzeit_g1:
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g1)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g1)-(an_finanziert_jaehrlich_max_sv_frei_g1))) #
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g1)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1)*1.2) + max(0,(an_finanziert_jaehrlich_g1-an_finanziert_jaehrlich_max_sv_frei_g1)) #
         elif i < laufzeit_g2:
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g2)-(an_finanziert_jaehrlich_max_sv_frei_g2))) #
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,(an_finanziert_jaehrlich_g2-an_finanziert_jaehrlich_max_sv_frei_g2)) #
         elif i < laufzeit_g3:
-            df.loc[i, 'EU + SV Ersparnis'] = min((an_ag_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_ag_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g3))) #
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,(an_finanziert_jaehrlich_g3-an_finanziert_jaehrlich_max_sv_frei_g3)) #
         else:
             df.loc[i, 'EU + SV Ersparnis'] = 0
+        #
 
 
 
