@@ -3,17 +3,22 @@ import pandas as pd
 from PIL import Image
 import plost
 import json
-import numpy as np
 import base64
-import array
-
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
 with open('style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-# Functions
+def to_percentage(value):
+    #v1 = "{:,.2f}".format(value * 100).replace('.', ',')
+    v1 = f'{value*100:,.2f} %'
+    v2 = v1.replace(',','#')
+    v3 = v2.replace('.','&')
+    v4 = v3.replace('#','.')
+    v5 = v4.replace('&',',')
+    return v5
+
 def format_german(value):
     v1 = f'{value:,.2f} €'
     v2 = v1.replace(',','#')
@@ -22,412 +27,196 @@ def format_german(value):
     v5 = v4.replace('%',',')
     return v5
 
-st.sidebar.header('Vergleichsrechner Einmaleinlage `version 1`')
+#avoid dividing by 0 denominator
+def safe_division(numerator, denominator):
+    if denominator == 0:
+        return 0 # Or whatever value makes sense in this context
+    else:
+        return numerator / denominator
+
+st.sidebar.header('DEMAK Dashboard `Version 2`')
+st.sidebar.title('Simulationsparameter')
+
 
 uploaded_file = st.sidebar.file_uploader("Parameter Hochladen", type=["json"])
+
 if uploaded_file:
     # Reading the uploaded JSON file
     uploaded_data = json.load(uploaded_file)
 
-# Eingabe Fondspolice
-st.sidebar.markdown('Fondspolice')
+    # Update the values from the uploaded data
+    #arbeitnehmer_anzahl = uploaded_data.get('Arbeitnehmeranzahl', arbeitnehmer_anzahl)
+    #zins_zusage = uploaded_data.get('Zins Zusage', zins_zusage)
+
+
+if uploaded_file:
+    st.sidebar.title('Gruppe 1')
+    arbeitnehmer_anzahl_g1 = st.sidebar.number_input('Arbeitnehmeranzahl (AN)',min_value=0,value= uploaded_data.get('Arbeitnehmeranzahl_g1'))
+    zins_zusage_g1 = (st.sidebar.number_input('Zins Zusage (%)',min_value=0.0,value= uploaded_data.get('Zins Zusage_g1') )/100)
+    an_fin_jaehrlich_pro_an_g1 = st.sidebar.number_input('AN finanziert jährlich pro AN (€)',min_value=0.0,value=uploaded_data.get('an_fin_jaehrlich_pro_an_g1'))
+    ag_fin_jaehrlich_pro_an_g1 = st.sidebar.number_input('AG finanziert jährlich pro AN (€)',min_value=0.0,value=uploaded_data.get('ag_fin_jaehrlich_pro_an_g1'))
+    laufzeit_g1 = st.sidebar.number_input('Laufzeit Zusage (Jahre)',min_value=0,value=uploaded_data.get('laufzeit_g1'))
+
+    st.sidebar.title('Gruppe 2')
+    arbeitnehmer_anzahl_g2 = st.sidebar.number_input('Arbeitnehmeranzahl (AN) ',min_value=0,value= uploaded_data.get('Arbeitnehmeranzahl_g2'))
+    zins_zusage_g2 = (st.sidebar.number_input('Zins Zusage (%) ',min_value=0.0,value= uploaded_data.get('Zins Zusage_g2') )/100)
+    an_fin_jaehrlich_pro_an_g2 = st.sidebar.number_input('AN finanziert jährlich pro AN (€) ',min_value=0.0,value=uploaded_data.get('an_fin_jaehrlich_pro_an_g2'))
+    ag_fin_jaehrlich_pro_an_g2 = st.sidebar.number_input('AG finanziert jährlich pro AN (€) ',min_value=0.0,value=uploaded_data.get('ag_fin_jaehrlich_pro_an_g2'))
+    laufzeit_g2 = st.sidebar.number_input('Laufzeit Zusage (Jahre) ',min_value=0,value=uploaded_data.get('laufzeit_g2'))
+
+    st.sidebar.title('Gruppe 3')
+    arbeitnehmer_anzahl_g3 = st.sidebar.number_input('Arbeitnehmeranzahl (AN)  ',min_value=0,value= uploaded_data.get('Arbeitnehmeranzahl_g3'))
+    zins_zusage_g3 = (st.sidebar.number_input('Zins Zusage (%)  ',min_value=0.0,value= uploaded_data.get('Zins Zusage_g3') )/100)
+    an_fin_jaehrlich_pro_an_g3 = st.sidebar.number_input('AN finanziert jährlich pro AN (€)  ',min_value=0.0,value=uploaded_data.get('an_fin_jaehrlich_pro_an_g3'))
+    ag_fin_jaehrlich_pro_an_g3 = st.sidebar.number_input('AG finanziert jährlich pro AN (€)  ',min_value=0.0,value=uploaded_data.get('ag_fin_jaehrlich_pro_an_g3'))
+    laufzeit_g3 = st.sidebar.number_input('Laufzeit Zusage (Jahre)  ',min_value=0,value=uploaded_data.get('laufzeit_g3'))
+
+    st.sidebar.title('Allgemeine Parameter')
+    darlehenszins = (st.sidebar.number_input('Darlehenszins (%)',min_value=0.0,value=uploaded_data.get('darlehenszins'))/100)
+    psv_beitragssatz = (st.sidebar.number_input('PSV-Beitragssatz (%)',min_value=0.0,value=uploaded_data.get('psv_beitragssatz'))/100)
+    uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlich pro AN',min_value=0,value=uploaded_data.get('uk_verwaltung_jaehrlich_pro_an'))
+    uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=uploaded_data.get('uk_verwaltung_einmalig_im_ersten_jahr'))/100)
+    p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=uploaded_data.get('p1_anlage_liq'))/100)
+    beitragsbemessungsgrenze = st.sidebar.number_input('Beitragsbemessungsgrenze pro Monat (€)',min_value=0,value=uploaded_data.get('beitragsbemessungsgrenze'))
+
+else:
+    st.sidebar.title('Gruppe 1')
+    arbeitnehmer_anzahl_g1 = st.sidebar.number_input('Arbeitnehmeranzahl (AN)',min_value=0,value=100)
+    zins_zusage_g1 = (st.sidebar.number_input('Zins Zusage (%)',min_value=0.0,value=0.00)/100)
+    an_fin_jaehrlich_pro_an_g1 = st.sidebar.number_input('AN finanziert jährlich pro AN (€)',min_value=0.0,value=0.0)
+    ag_fin_jaehrlich_pro_an_g1 = st.sidebar.number_input('AG finanziert jährlich pro AN (€)',min_value=0.0,value=0.0)
+    laufzeit_g1 = st.sidebar.number_input('Laufzeit Zusage (Jahre)',min_value=0,value=0)
+
+    st.sidebar.title('Gruppe 2')
+    arbeitnehmer_anzahl_g2 = st.sidebar.number_input('Arbeitnehmeranzahl (AN) ',min_value=0,value=0)
+    zins_zusage_g2 = (st.sidebar.number_input('Zins Zusage (%) ',min_value=0.0,value=0.00)/100)
+    an_fin_jaehrlich_pro_an_g2 = st.sidebar.number_input('AN finanziert jährlich pro AN (€) ',min_value=0.0,value=0.0)
+    ag_fin_jaehrlich_pro_an_g2 = st.sidebar.number_input('AG finanziert jährlich pro AN (€) ',min_value=0.0,value=0.0)
+    laufzeit_g2 = st.sidebar.number_input('Laufzeit Zusage (Jahre) ',min_value=0,value=0)
+
+    st.sidebar.title('Gruppe 3')
+    arbeitnehmer_anzahl_g3 = st.sidebar.number_input('Arbeitnehmeranzahl (AN)  ',min_value=0,value=0)
+    zins_zusage_g3 = (st.sidebar.number_input('Zins Zusage (%)  ',min_value=0.0,value=0.00)/100)
+    an_fin_jaehrlich_pro_an_g3 = st.sidebar.number_input('AN finanziert jährlich pro AN (€)  ',min_value=0.0,value=0.0)
+    ag_fin_jaehrlich_pro_an_g3 = st.sidebar.number_input('AG finanziert jährlich pro AN (€)  ',min_value=0.0,value=0.0)
+    laufzeit_g3 = st.sidebar.number_input('Laufzeit Zusage (Jahre)  ',min_value=0,value=0)
+
+
+
+    st.sidebar.title('Allgemeine Parameter')
+    darlehenszins = (st.sidebar.number_input('Darlehenszins (%)',min_value=0.0,value=7.50)/100)
+    psv_beitragssatz = (st.sidebar.number_input('PSV-Beitragssatz (%)',min_value=0.0,value=0.25)/100)
+    uk_verwaltung_jaehrlich_pro_an = st.sidebar.number_input('UK Verwaltung jährlich pro AN',min_value=0,value=89)
+    uk_verwaltung_einmalig_im_ersten_jahr = (st.sidebar.number_input('UK Verwaltung einmalig im ersten Jahr (%)',min_value=0.0,value=2.00)/100)
+    p1_anlage_liq = (st.sidebar.number_input('Anlage Liquidität (%)',min_value=0.0,value=0.0)/100)
+    beitragsbemessungsgrenze = st.sidebar.number_input('Beitragsbemessungsgrenze pro Monat (€)',min_value=0,value=7300) #7.300*12*0,04=3.504
+
+steuern_UK = 0.1583 #(st.sidebar.number_input('Steuern UK (e.V.) (%)',min_value=0.0,value=15.83)/100)
+steuer_ersparnis = 0.3 #(st.sidebar.number_input('Steuerersparnis (%)',min_value=0.0,value=30.00)/100)
+passiva_2 = 0
+
+
+st.sidebar.title('Eröffnungsbilanz')
+col3, col4 = st.sidebar.columns(2)
+col3.subheader('Aktiva')
+col4.subheader('Passiva')
+
 if uploaded_file:
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        einmalbeitrag_police = st.number_input('Einmalbeitrag',min_value=0,value=uploaded_data.get('einmalbeitrag_police'))
-        rendite_mischfonds_police = (st.number_input('Rendite Mischfonds(%)',min_value=0.0,value=uploaded_data.get('rendite_mischfonds_police'))/100)
-        rendite_rentenfonds_police = (st.number_input('Rendite Rentenfonds(%)',min_value=0.0,value=uploaded_data.get('rendite_rentenfonds_police'))/100)
-        rendite_aktienfonds_police = (st.number_input('Rendite Aktienfonds(%)',min_value=0.0,value=uploaded_data.get('rendite_aktienfonds_police'))/100)
+        anlagevermoegen = st.number_input('Anlagevermögen',min_value=0,value=uploaded_data.get('Anlagevermögen'))
+        umlaufvermögen = st.number_input('Umlaufvermögen',min_value=0,value=0, disabled=True)
+        vorraete = st.number_input('Vorräte',min_value=0,value=uploaded_data.get('Vorräte'))
+        kurzfristige_forderungen = st.number_input('Kurzfristige Forderungen',min_value=0,value=uploaded_data.get('Kurzfristige Forderungen'))
+        zahlungsmittel = st.number_input('Zahlungsmittel',min_value=0,value=uploaded_data.get('Zahlungsmittel'))
     with col2:
-        teilfreistellung_police = (st.number_input('Teilfreistellung(%)',min_value=0.0,value=uploaded_data.get('teilfreistellung_police'))/100)
-        effektivkosten_police = (st.number_input('Effektivkosten pro Jahr(%)',min_value=0.0,value=uploaded_data.get('effektivkosten_police'))/100)
-        steuersatz_police = (st.number_input('Persönl. Steuersatz bei Auszahlung(%)',min_value=0.0,value=uploaded_data.get('steuersatz_police'))/100)
-
-
+        eigenkapital = st.number_input('Eigenkapital',min_value=0,value=0, disabled=True)
+        fremdkapital = st.number_input('Fremdkapital',min_value=0,value=0, disabled=True)
+        fk_kurzfristig = st.number_input('kurzfristig (FK kurzfr.)',min_value=0,value=uploaded_data.get('kurzfristig (FK kurzfr.)'))
+        fk_langfristig = st.number_input('langfristig (FK langfr.)',min_value=0,value=uploaded_data.get('langfristig (FK langfr.)'))
 else:
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        einmalbeitrag_police = st.number_input('Einmalbeitrag',min_value=0,value=0)
-        rendite_mischfonds_police = (st.number_input('Rendite Mischfonds(%)',min_value=0.0,value=8.0)/100)
-        rendite_rentenfonds_police = (st.number_input('Rendite Rentenfonds(%)',min_value=0.0,value=8.0)/100)
-        rendite_aktienfonds_police = (st.number_input('Rendite Aktienfonds(%)',min_value=0.0,value=8.0)/100)
+        anlagevermoegen = st.number_input('Anlagevermögen',min_value=0,value=0)
+        umlaufvermögen = st.number_input('Umlaufvermögen',min_value=0,value=0, disabled=True)
+        vorraete = st.number_input('Vorräte',min_value=0,value=0)
+        kurzfristige_forderungen = st.number_input('Kurzfristige Forderungen',min_value=0,value=0)
+        zahlungsmittel = st.number_input('Zahlungsmittel',min_value=0,value=0)
     with col2:
-        teilfreistellung_police = (st.number_input('Teilfreistellung(%)',min_value=0.0,value=15.00)/100)
-        effektivkosten_police = (st.number_input('Effektivkosten pro Jahr(%)',min_value=0.0,value=1.00)/100)
-        steuersatz_police = (st.number_input('Persönl. Steuersatz bei Auszahlung(%)',min_value=0.0,value=42.0)/100)
-
-
-# Eingabe Fondssparplan
-st.sidebar.markdown('Fondssparplan')
-if uploaded_file:
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        einmalbeitrag_sparplan = st.number_input('Einmalbeitrag ',min_value=0,value=uploaded_data.get('einmalbeitrag_sparplan'))
-        rendite_aktienfonds_sparplan = (st.number_input('Rendite Aktienfonds(%) ',min_value=0.0,value=uploaded_data.get('rendite_aktienfonds_sparplan'))/100)
-        rendite_mischfonds_sparplan = (st.number_input('Rendite Mischfonds(%) ',min_value=0.0,value=uploaded_data.get('rendite_mischfonds_sparplan'))/100)
-        rendite_rentenfonds_sparplan = (st.number_input('Rendite Rentenfonds(%) ',min_value=0.0,value=uploaded_data.get('rendite_rentenfonds_sparplan'))/100)
-        freistellungsauftrag_sparplan = st.number_input('Freistellungsauftrag ',min_value=0,value=uploaded_data.get('freistellungsauftrag_sparplan'))
-    with col2:
-        teilfreistellung_aktienfonds_sparplan = (st.number_input('Teilfreistellung Aktienfonds(%) ',min_value=0.0,value=uploaded_data.get('teilfreistellung_aktienfonds_sparplan'))/100)
-        teilfreistellung_mischfonds_sparplan = (st.number_input('Teilfreistellung Mischfonds(%)',min_value=0.0,value=uploaded_data.get('teilfreistellung_mischfonds_sparplan'))/100)
-        teilfreistellung_rentenfonds_sparplan = (st.number_input('Teilfreistellung Rentenfonds(%) ',min_value=0.0,value=uploaded_data.get('teilfreistellung_rentenfonds_sparplan'))/100)
-        basiszins_sparplan = (st.number_input('Basiszins(%) ',min_value=0.0,value=uploaded_data.get('basiszins_sparplan'))/100)
-
-        effektivkosten_sparplan = (st.number_input('Effektivkosten pro Jahr(%) ',min_value=0.0,value=uploaded_data.get('effektivkosten_sparplan'))/100)
-        ausgabeaufschlag_sparplan = (st.number_input('Ausgabeaufschlag auf Wiederanlage(%) ',min_value=0.0,value=uploaded_data.get('ausgabeaufschlag_sparplan'))/100)
-        steuerlast_sparplan = (st.number_input('Steuerlast(%) ',min_value=0.0,value=uploaded_data.get('steuerlast_sparplan'))/100)
-        steuerlast_auszahlung_sparplan = (st.number_input('Steuerlast bei Auszahlung(%) ',min_value=0.0,value=uploaded_data.get('steuerlast_auszahlung_sparplan'))/100)
-else:
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        einmalbeitrag_sparplan = st.number_input('Einmalbeitrag ',min_value=0,value=0)
-        rendite_aktienfonds_sparplan = (st.number_input('Rendite Aktienfonds(%) ',min_value=0.0,value=0.0)/100)
-        rendite_mischfonds_sparplan = (st.number_input('Rendite Mischfonds(%) ',min_value=0.0,value=0.0)/100)
-        rendite_rentenfonds_sparplan = (st.number_input('Rendite Rentenfonds(%) ',min_value=0.0,value=0.0)/100)
-        freistellungsauftrag_sparplan = st.number_input('Freistellungsauftrag ',min_value=0,value=0)
-    with col2:
-        teilfreistellung_aktienfonds_sparplan = (st.number_input('Teilfreistellung Aktienfonds(%) ',min_value=0.0,value=0.0)/100)
-        teilfreistellung_mischfonds_sparplan = (st.number_input('Teilfreistellung Mischfonds(%) ',min_value=0.0,value=0.0)/100)
-        teilfreistellung_rentenfonds_sparplan = (st.number_input('Teilfreistellung Rentenfonds(%) ',min_value=0.0,value=0.0)/100)
-        basiszins_sparplan = (st.number_input('Basiszins(%) ',min_value=0.0,value=0.0)/100)
-
-        effektivkosten_sparplan = (st.number_input('Effektivkosten pro Jahr(%) ',min_value=0.0,value=0.0)/100)
-        ausgabeaufschlag_sparplan = (st.number_input('Ausgabeaufschlag auf Wiederanlage(%) ',min_value=0.0,value=0.0)/100)
-        steuerlast_sparplan = (st.number_input('Steuerlast(%) ',min_value=0.0,value=0.0)/100)
-        steuerlast_auszahlung_sparplan = (st.number_input('Steuerlast bei Auszahlung(%) ',min_value=0.0,value=0.0)/100)
-
-
-
-st.sidebar.subheader('Weitere Parameter')
-if uploaded_file:
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        laufzeit = st.number_input('Laufzeit',min_value=0,value=uploaded_data.get('laufzeit'))-1
-        anzahl_umschichtungen = st.number_input('Anzahl der Umschichtungen',min_value=0,value=uploaded_data.get('anzahl_umschichtungen'))
-        anteil_umschichtung =  (st.number_input('Anteil Umschichtung(%)',min_value=0.0,value=uploaded_data.get('anteil_umschichtung'))/100)
-else:
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        laufzeit = st.number_input('Laufzeit ',min_value=0,value=1)-1
-        anzahl_umschichtungen = st.number_input('Anzahl der Umschichtungen ',min_value=0,value=0)
-        anteil_umschichtung = (st.number_input('Anteil Umschichtung(%)',min_value=0.0,value=0.0)/100)
-
-
-
-#Umschichtungen police
-def create_rollover_dataframe_police(laufzeit, anzahl_umschichtungen):
-    # Create a dataframe with "years" number of rows
-    df_police = pd.DataFrame({'Jahr': range(0, laufzeit+1)})
-
-    # Calculate the positions for rollovers
-    sequence = np.linspace(1, laufzeit, anzahl_umschichtungen + 2, dtype=int)[1:-1]
-    positions = np.append(sequence, laufzeit)
-    #positions = [19,29,laufzeit] #TEST
-
-    # Initialize the rollover column with zeros
-    df_police['UmschichtungJN'] = 0
-
-    # Set rollovers at calculated positions
-    df_police.loc[positions, 'UmschichtungJN'] = 1
-
-    return df_police
-
-def create_rollover_dataframe_depot(laufzeit, anzahl_umschichtungen):
-    # Create a dataframe with "years" number of rows
-    df_depot = pd.DataFrame({'Jahr': range(0, laufzeit+1)})
-
-    # Calculate the positions for rollovers
-    sequence = np.linspace(1, laufzeit, anzahl_umschichtungen + 2, dtype=int)[1:-1]
-    positions = np.append(sequence, laufzeit)
-    positions = [19,29,laufzeit] #TEST
-
-    # Initialize the rollover column with zeros
-    df_depot['UmschichtungJN'] = 0
-
-    # Set rollovers at calculated positions
-    df_depot.loc[positions, 'UmschichtungJN'] = 1
-
-    return df_depot
-
-
-#POLICE TABELLE
-df_police = create_rollover_dataframe_police(laufzeit, anzahl_umschichtungen)
-
-
-#df_police['Jahr'] = range(1, laufzeit +1)
-df_police['Jahresbeginn'] = 0
-df_police['Nach Beitragskosten und Abschlusskosten'] = 0
-df_police['Rendite'] = 0
-df_police['Wertsteigerung'] = 0
-df_police['Jahresende'] = 0
-df_police['Kosten Fondsguthaben'] = 0
-df_police['Jahresende nach Kosten'] = 0
-df_police['Einzahlung'] = 0
-df_police['Umschichtung'] = 0
-df_police['Umschichten oder Auszahlen'] = 0
-df_police['Steuerlast'] = 0
-
-for i in range (laufzeit+1):
-    if i == 0:
-        df_police.loc[i, 'Jahr'] = i+1 #A
-        df_police.loc[i, 'Jahresbeginn'] = einmalbeitrag_police #B
-        df_police.loc[i, 'Nach Beitragskosten und Abschlusskosten'] = df_police.loc[i,'Jahresbeginn'] #DELETE? #D
-        df_police.loc[i, 'Rendite'] = rendite_aktienfonds_police #E
-        df_police.loc[i, 'Wertsteigerung'] = df_police.loc[i,'Nach Beitragskosten und Abschlusskosten']*df_police.loc[i,'Rendite'] #F
-        df_police.loc[i, 'Jahresende'] = df_police.loc[i,'Nach Beitragskosten und Abschlusskosten']+df_police.loc[i,'Wertsteigerung'] #G
-        df_police.loc[i, 'Kosten Fondsguthaben'] = df_police.loc[i,'Jahresende']*effektivkosten_police #J
-        df_police.loc[i, 'Jahresende nach Kosten'] = df_police.loc[i,'Jahresende']-df_police.loc[i,'Kosten Fondsguthaben'] #K
-        df_police.loc[i, 'Einzahlung'] = einmalbeitrag_police #L
-        df_police.loc[i, 'Umschichtung'] = df_police.loc[i, 'UmschichtungJN']*anteil_umschichtung #M %-Zahl einfügen
-        df_police.loc[i, 'Umschichten oder Auszahlen'] = df_police.loc[i, 'Jahresende nach Kosten']*df_police.loc[i, 'Umschichtung'] #N
-
-    else:
-        df_police.loc[i, 'Jahr'] = i+1 #A
-        df_police.loc[i,'Jahresbeginn'] = df_police.loc[i-1, 'Jahresende nach Kosten'] #B
-        df_police.loc[i,'Nach Beitragskosten und Abschlusskosten'] = df_police.loc[i,'Jahresbeginn'] #DELETE? #D
-        df_police.loc[i, 'Rendite'] = rendite_aktienfonds_police #E
-        df_police.loc[i, 'Wertsteigerung'] = df_police.loc[i,'Nach Beitragskosten und Abschlusskosten']*df_police.loc[i,'Rendite'] #F
-        df_police.loc[i, 'Jahresende'] = df_police.loc[i,'Nach Beitragskosten und Abschlusskosten']+df_police.loc[i,'Wertsteigerung'] #G
-        df_police.loc[i, 'Kosten Fondsguthaben'] = df_police.loc[i,'Jahresende']*effektivkosten_police #J
-        df_police.loc[i, 'Jahresende nach Kosten'] = df_police.loc[i,'Jahresende']-df_police.loc[i,'Kosten Fondsguthaben'] #K
-        df_police.loc[i, 'Einzahlung'] = 0 #L
-        df_police.loc[i, 'Umschichtung'] = df_police.loc[i, 'UmschichtungJN']*anteil_umschichtung #M %-Zahl einfügen
-        df_police.loc[i, 'Umschichten oder Auszahlen'] = df_police.loc[i, 'Jahresende nach Kosten']*df_police.loc[i, 'Umschichtung'] #N
-
-#DEPOT TABELLE
-#df_depot = pd.DataFrame()
-df_depot = create_rollover_dataframe_depot(laufzeit, anzahl_umschichtungen)
-
-#df_depot['Jahr'] = range(1, laufzeit+1)
-df_depot['Jahresbeginn'] = 0
-df_depot['Nach Orderprov. und Ausgabeaufschl.'] = 0
-df_depot['Rendite'] = 0
-df_depot['Wertsteigerung'] = 0
-df_depot['Wertsteigerunglaufend'] = 0
-df_depot['Jahresende'] = 0
-df_depot['Kosten auf Fondsguthaben'] = 0
-df_depot['Jahresende nach Kosten'] = 0
-df_depot['Basisertrag'] = 0
-df_depot['Vorabpauschale'] = 0
-df_depot['Vorabpauschalelaufend'] = 0
-df_depot['Teilfreistellung'] = 0
-df_depot['zu besteuern'] = 0
-df_depot['Freistellungsauftrag'] = 0
-df_depot['Freistellung übrig'] = 0
-df_depot['danach zu besteuern'] = 0
-df_depot['Steuerlast'] = 0
-df_depot['Einzahlung'] = 0
-df_depot['Umschichtung'] = 0
-df_depot['Umschichten'] = 0
-df_depot['Erträgelaufend'] = 0
-df_depot['Erträge'] = 0
-df_depot['minus Vorabpauschale'] = 0
-df_depot['Teilfreistellung '] = 0
-df_depot['zu besteuern '] = 0
-df_depot['nach Freistellungsauftrag'] = 0
-df_depot['Steuerlast '] = 0
-df_depot['Kapital abzüglich Steuer'] = 0
-
-for i in range (laufzeit+1):
-    if i == 0:
-        df_depot.loc[i, 'Jahr'] = i+1 #A
-        df_depot.loc[i, 'Jahresbeginn'] = einmalbeitrag_sparplan #B
-        df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.'] = df_depot.loc[i, 'Jahresbeginn'] #E
-        df_depot.loc[i, 'Rendite'] = rendite_aktienfonds_sparplan #F
-        df_depot.loc[i, 'Wertsteigerung'] = df_depot.loc[i, 'Jahresbeginn'] * rendite_aktienfonds_sparplan #G
-        df_depot.loc[i, 'Jahresende'] = df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.'] + df_depot.loc[i, 'Wertsteigerung'] #H
-        df_depot.loc[i, 'Kosten auf Fondsguthaben'] = df_depot.loc[i, 'Jahresende'] * effektivkosten_sparplan #K
-        df_depot.loc[i, 'Basisertrag'] = df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.']*0.7*basiszins_sparplan #M
-        if(df_depot.loc[i, 'Jahresende']-df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.']) <= df_depot.loc[i, 'Basisertrag'] and (df_depot.loc[i, 'Jahresende']-df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.']) >= 0:
-            df_depot.loc[i, 'Vorabpauschale'] = 0  #N
-        elif(df_depot.loc[i, 'Jahresende']-df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.'])>=df_depot.loc[i, 'Basisertrag']:
-            df_depot.loc[i, 'Vorabpauschale'] = df_depot.loc[i, 'Basisertrag'] #N
-        else:
-            df_depot.loc[i, 'Vorabpauschale'] = 0 #N
-        df_depot.loc[i, 'Vorabpauschalelaufend'] = df_depot.loc[i, 'Vorabpauschale']
-        df_depot.loc[i, 'Teilfreistellung'] = df_depot.loc[i, 'Vorabpauschale']*teilfreistellung_aktienfonds_sparplan #O
-        df_depot.loc[i, 'zu besteuern'] = df_depot.loc[i, 'Vorabpauschale'] - df_depot.loc[i, 'Teilfreistellung'] #P
-        df_depot.loc[i, 'Freistellungsauftrag'] = freistellungsauftrag_sparplan #R
-
-        if df_depot.loc[i, 'zu besteuern'] >= df_depot.loc[i, 'Freistellungsauftrag']:
-            df_depot.loc[i, 'Freistellung übrig'] = 0
-        else:
-            df_depot.loc[i, 'Freistellung übrig'] = df_depot.loc[i, 'Freistellungsauftrag'] - df_depot.loc[i, 'zu besteuern'] #S
-
-        if df_depot.loc[i, 'Freistellungsauftrag'] >= df_depot.loc[i, 'zu besteuern']:
-            df_depot.loc[i, 'danach zu besteuern'] = 0 #T
-        else:
-            df_depot.loc[i, 'danach zu besteuern'] = df_depot.loc[i, 'zu besteuern'] - df_depot.loc[i, 'Freistellungsauftrag'] #T
-
-        df_depot.loc[i, 'Steuerlast'] = df_depot.loc[i, 'danach zu besteuern']*steuerlast_sparplan #U
-        df_depot.loc[i, 'Jahresende nach Kosten'] = df_depot.loc[i, 'Jahresende'] - df_depot.loc[i, 'Kosten auf Fondsguthaben'] - df_depot.loc[i, 'Steuerlast']  #L
-        df_depot.loc[i, 'Einzahlung'] = einmalbeitrag_sparplan #V
-        df_depot.loc[i, 'Umschichtung'] = df_depot.loc[i, 'UmschichtungJN']*anteil_umschichtung #W %-Zahl einfügen
-        df_depot.loc[i, 'Umschichten'] = df_depot.loc[i, 'Jahresende nach Kosten']*df_depot.loc[i, 'Umschichtung'] #X
-        df_depot.loc[i, 'Erträgelaufend'] = df_depot.loc[i, 'Wertsteigerung'] #NICHT ANZEIGEN
-        df_depot.loc[i, 'Erträge'] = df_depot.loc[i, 'Erträgelaufend']*df_depot.loc[i, 'UmschichtungJN'] #Z
-        df_depot.loc[i, 'minus Vorabpauschale'] = (df_depot.loc[i, 'Erträgelaufend'] - df_depot.loc[i, 'Vorabpauschalelaufend'])*df_depot.loc[i, 'UmschichtungJN'] #AA
-        df_depot.loc[i, 'Teilfreistellung '] = df_depot.loc[i, 'minus Vorabpauschale']*teilfreistellung_aktienfonds_sparplan #AB
-        df_depot.loc[i, 'zu besteuern '] = df_depot.loc[i, 'minus Vorabpauschale'] - df_depot.loc[i, 'Teilfreistellung '] #AC
-
-        if df_depot.loc[i, 'Freistellung übrig'] > df_depot.loc[i, 'zu besteuern ']:
-            df_depot.loc[i, 'nach Freistellungsauftrag'] = 0 #AD
-        else:
-            df_depot.loc[i, 'nach Freistellungsauftrag'] = df_depot.loc[i, 'zu besteuern '] - df_depot.loc[i, 'Freistellung übrig'] #AD
-
-        df_depot.loc[i, 'Steuerlast '] = df_depot.loc[i, 'nach Freistellungsauftrag']*steuerlast_sparplan #AE
-        df_depot.loc[i, 'Kapital abzüglich Steuer'] = df_depot.loc[i, 'Umschichten'] - df_depot.loc[i, 'Steuerlast '] #AF
-
-    else:
-        df_depot.loc[i, 'Jahr'] = i+1 #A
-        df_depot.loc[i,'Jahresbeginn'] = df_depot.loc[i-1, 'Jahresende nach Kosten'] - df_depot.loc[i-1, 'Steuerlast '] #B
-        df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.'] = df_depot.loc[i, 'Jahresbeginn'] #E
-        df_depot.loc[i, 'Rendite'] = rendite_aktienfonds_sparplan #F
-        df_depot.loc[i, 'Wertsteigerung'] = df_depot.loc[i, 'Jahresbeginn'] * rendite_aktienfonds_sparplan #G
-        df_depot.loc[i, 'Jahresende'] = df_depot.loc[i, 'Jahresbeginn'] + df_depot.loc[i, 'Wertsteigerung'] #H
-        df_depot.loc[i, 'Kosten auf Fondsguthaben'] = df_depot.loc[i, 'Jahresende'] * effektivkosten_sparplan #K
-        df_depot.loc[i, 'Basisertrag'] = df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.']*0.7*basiszins_sparplan #M
-
-        if(df_depot.loc[i, 'Jahresende']-df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.']) <= df_depot.loc[i, 'Basisertrag'] and (df_depot.loc[i, 'Jahresende']-df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.']) >= 0:
-            df_depot.loc[i, 'Vorabpauschale'] = 0  #N
-        elif(df_depot.loc[i, 'Jahresende']-df_depot.loc[i, 'Nach Orderprov. und Ausgabeaufschl.']) >= df_depot.loc[i, 'Basisertrag']:
-            df_depot.loc[i, 'Vorabpauschale'] = df_depot.loc[i, 'Basisertrag'] #N
-        else:
-            df_depot.loc[i, 'Vorabpauschale'] = 0 #N
-
-        df_depot.loc[i, 'Vorabpauschalelaufend'] = df_depot.loc[i-1, 'Vorabpauschalelaufend'] + df_depot.loc[i, 'Vorabpauschale']
-        df_depot.loc[i, 'Teilfreistellung'] = df_depot.loc[i, 'Vorabpauschale']*teilfreistellung_aktienfonds_sparplan #O ############
-        df_depot.loc[i, 'zu besteuern'] = df_depot.loc[i, 'Vorabpauschale'] - df_depot.loc[i, 'Teilfreistellung'] #P
-        df_depot.loc[i, 'Freistellungsauftrag'] = freistellungsauftrag_sparplan #R
-
-        if df_depot.loc[i, 'zu besteuern'] >= df_depot.loc[i, 'Freistellungsauftrag']:
-            df_depot.loc[i, 'Freistellung übrig'] = 0
-        else:
-            df_depot.loc[i, 'Freistellung übrig'] = df_depot.loc[i, 'Freistellungsauftrag'] - df_depot.loc[i, 'zu besteuern'] #S
-
-        if df_depot.loc[i, 'Freistellungsauftrag'] >= df_depot.loc[i, 'zu besteuern']:
-            df_depot.loc[i, 'danach zu besteuern'] = 0 #T
-        else:
-            df_depot.loc[i, 'danach zu besteuern'] = df_depot.loc[i, 'zu besteuern'] - df_depot.loc[i, 'Freistellungsauftrag'] #T
-
-        df_depot.loc[i, 'Steuerlast'] = df_depot.loc[i, 'danach zu besteuern']*steuerlast_sparplan #U
-        df_depot.loc[i, 'Jahresende nach Kosten'] = df_depot.loc[i, 'Jahresende'] - df_depot.loc[i, 'Kosten auf Fondsguthaben'] - df_depot.loc[i, 'Steuerlast']  #L
-        df_depot.loc[i, 'Einzahlung'] = 0 #V
-        df_depot.loc[i, 'Umschichtung'] = df_depot.loc[i, 'UmschichtungJN']*anteil_umschichtung #W %-Zahl einfügen
-        df_depot.loc[i, 'Umschichten'] = df_depot.loc[i, 'Jahresende nach Kosten']*df_depot.loc[i, 'Umschichtung'] #X
-        df_depot.loc[i, 'Erträgelaufend'] = df_depot.loc[i-1, 'Erträgelaufend'] + df_depot.loc[i, 'Wertsteigerung'] #NICHT ANZEIGEN
-        df_depot.loc[i, 'Erträge'] = df_depot.loc[i, 'Erträgelaufend']*df_depot.loc[i, 'UmschichtungJN'] #Z
-        df_depot.loc[i, 'minus Vorabpauschale'] = (df_depot.loc[i, 'Erträgelaufend'] - df_depot.loc[i, 'Vorabpauschalelaufend'])*df_depot.loc[i, 'UmschichtungJN'] #AA
-        df_depot.loc[i, 'Teilfreistellung '] = df_depot.loc[i, 'minus Vorabpauschale']*teilfreistellung_aktienfonds_sparplan #AB
-        df_depot.loc[i, 'zu besteuern '] = df_depot.loc[i, 'minus Vorabpauschale'] - df_depot.loc[i, 'Teilfreistellung '] #AC
-
-        if df_depot.loc[i, 'Freistellung übrig'] > df_depot.loc[i, 'zu besteuern ']:
-            df_depot.loc[i, 'nach Freistellungsauftrag'] = 0 #AD
-        else:
-            df_depot.loc[i, 'nach Freistellungsauftrag'] = df_depot.loc[i, 'zu besteuern '] - df_depot.loc[i, 'Freistellung übrig'] #AD
-
-        df_depot.loc[i, 'Steuerlast '] = df_depot.loc[i, 'nach Freistellungsauftrag']*steuerlast_sparplan #AE
-        df_depot.loc[i, 'Kapital abzüglich Steuer'] = df_depot.loc[i, 'Umschichten'] - df_depot.loc[i, 'Steuerlast '] #AF
-
-# Display the DataFrame as a table in Streamlit
-st.markdown('### Fondspolice')
-df_police = df_police.round(2)
-st.dataframe(df_police)
-
-csv = df_police.to_csv(index=False)
-st.download_button(
-    label="Als CSV herunterladen",
-    data=csv,
-    file_name="data.csv",
-    mime="text/csv",
-)
-
-
-st.markdown('### Fondssparplan')
-df_depot = df_depot.round(2)
-st.dataframe(df_depot)
-
-csv = df_depot.to_csv(index=False)
-st.download_button(
-    label="Als CSV herunterladen",
-    data=csv,
-    file_name="data.csv",
-    mime="text/csv",
-)
-
-
-
-# Row A1
-st.title('Ergebnis')
-col1, col2, col3 = st.columns(3)
-
-fondspolice_rentenkapital = df_police.loc[i, 'Jahresende nach Kosten']
-col1.metric("Fondspolice Rentenkapital",format_german(fondspolice_rentenkapital))
-
-fondspolice_ertraege = fondspolice_rentenkapital - einmalbeitrag_police
-fondspolice_teilfreistellung_result = fondspolice_ertraege * teilfreistellung_police
-fondspolice_zu_besteuern_result = fondspolice_ertraege - fondspolice_teilfreistellung_result
-fondspolice_hev_result = fondspolice_zu_besteuern_result/2
-fondspolice_steuerlast_result = fondspolice_hev_result * steuersatz_police
-fondspolice = fondspolice_rentenkapital - fondspolice_steuerlast_result
-col1.metric("Fondspolice",format_german(fondspolice))
-col1.metric("test12",format_german(1))
-
-
-
-
-
-
-
-
-
-
-
-st.sidebar.subheader('Heat map parameter')
-time_hist_color = st.sidebar.selectbox('Color by', ('temp_min', 'temp_max'))
-st.sidebar.subheader('Donut chart parameter')
-donut_theta = st.sidebar.selectbox('Select data', ('q2', 'q3'))
-st.sidebar.subheader('Line chart parameters')
-plot_data = st.sidebar.multiselect('Select data', ['temp_min', 'temp_max'], ['temp_min', 'temp_max'])
-plot_height = st.sidebar.slider('Specify plot height', 200, 500, 250)
-
-
-st.sidebar.markdown('''
----
-Created with ❤️ by [Data Professor](https://youtube.com/dataprofessor/).
-''')
+        eigenkapital = st.number_input('Eigenkapital',min_value=0,value=0, disabled=True)
+        fremdkapital = st.number_input('Fremdkapital',min_value=0,value=0, disabled=True)
+        fk_kurzfristig = st.number_input('kurzfristig (FK kurzfr.)',min_value=0,value=0)
+        fk_langfristig = st.number_input('langfristig (FK langfr.)',min_value=0,value=0)
+
+# Create options from 1 to x
+default_index = 0
+laufzeit_max = max(laufzeit_g1,laufzeit_g2,laufzeit_g3)
+options = list(range(1, laufzeit_max + 2))
+st.sidebar.title('Musterbilanz')
+# Create a selectbox with the options
+
+c1, c2 = st.sidebar.columns(2)
+with c1:
+    bilanz_nach_jahren = st.selectbox('Bilanz nach X Jahren:', options, index=default_index)
+    show_previous_balance_sheet = st.selectbox('Bilanzkennzahlen einblenden:', ('nein','ja'))
+with c2:
+    bilanzverlaengerung_j_n = st.selectbox('Bilanzverlängerung:', ('ja', 'nein'))
+    bilanzanhang_einblenden = st.selectbox('Bilanzanhang einblenden:', ('nein', 'ja'))
+
+# Define flags for each metric's visibility
+st.sidebar.title('Finanzwirtschaftliche Bilanzkennzahlen')
+d1, d2 = st.sidebar.columns(2)
+with d1:
+    show_eigenkapital_quote = st.checkbox("Eigenkapitalquote", value=True)
+    show_anspannungsgrad = st.checkbox("Anspannungsgrad", value=True)
+    show_statischer_verschuldungsgrad = st.checkbox("Statischer Verschuldungsgrad", value=True)
+    show_intensitaet_langfristiges_kapital = st.checkbox("Intensität langfristigen Kapitals", value=True)
+    show_liquiditaet_1_grades = st.checkbox("Liquidität 1. Grades", value=True)
+with d2:
+    show_liquiditaet_2_grades = st.checkbox("Liquidität 2. Grades", value=True)
+    show_liquiditaet_3_grades = st.checkbox("Liquidität 3. Grades", value=True)
+    show_net_working_capital = st.checkbox("Net Working Capital", value=True)
+    show_deckungsgrad_a = st.checkbox("Deckungsgrad A", value=True)
+    show_deckungsgrad_b = st.checkbox("Deckungsgrad B", value=True)
 
 # Add a button to trigger the save
 st.sidebar.title(' ')
 if st.sidebar.button('Parameter Speichern'):
     # Creating a dictionary of parameters to save
     data_to_save = {
-        ### Parameter Police
-        'einmalbeitrag_police': einmalbeitrag_police,
-        'rendite_mischfonds_police': rendite_mischfonds_police*100,
-        'rendite_rentenfonds_police': rendite_rentenfonds_police*100,
-        'rendite_aktienfonds_police': rendite_aktienfonds_police*100,
-        'teilfreistellung_police': teilfreistellung_police*100,
-        'effektivkosten_police': effektivkosten_police*100,
-        'steuersatz_police': steuersatz_police*100,
-    ### Parameter Sparplan
-        'einmalbeitrag_sparplan': einmalbeitrag_sparplan,
-        'rendite_aktienfonds_sparplan': rendite_aktienfonds_sparplan*100,
-        'rendite_mischfonds_sparplan': rendite_mischfonds_sparplan*100,
-        'rendite_rentenfonds_sparplan': rendite_rentenfonds_sparplan*100,
-        'freistellungsauftrag_sparplan': freistellungsauftrag_sparplan*100,
-        'teilfreistellung_aktienfonds_sparplan': teilfreistellung_aktienfonds_sparplan*100,
-        'teilfreistellung_mischfonds_sparplan': teilfreistellung_mischfonds_sparplan*100,
-        'teilfreistellung_rentenfonds_sparplan': teilfreistellung_rentenfonds_sparplan*100,
-        'basiszins_sparplan': basiszins_sparplan*100,
-        'effektivkosten_sparplan': effektivkosten_sparplan*100,
-        'ausgabeaufschlag_sparplan': ausgabeaufschlag_sparplan*100,
-        'steuerlast_sparplan': steuerlast_sparplan*100,
-        'steuerlast_auszahlung_sparplan': steuerlast_auszahlung_sparplan*100,
-        ### Weitere Parameter
-        'laufzeit': laufzeit+1,
-        'anzahl_umschichtungen': anzahl_umschichtungen,
-        'anteil_umschichtung': anteil_umschichtung*100
+        ### Gruppe 1
+        'Arbeitnehmeranzahl_g1': arbeitnehmer_anzahl_g1,
+        'Zins Zusage_g1': zins_zusage_g1*100,
+        'an_fin_jaehrlich_pro_an_g1': an_fin_jaehrlich_pro_an_g1,
+        'ag_fin_jaehrlich_pro_an_g1': ag_fin_jaehrlich_pro_an_g1,
+        'laufzeit_g1': laufzeit_g1,
+
+        ### Gruppe 2
+        'Arbeitnehmeranzahl_g2': arbeitnehmer_anzahl_g2,
+        'Zins Zusage_g2': zins_zusage_g2*100,
+        'an_fin_jaehrlich_pro_an_g2': an_fin_jaehrlich_pro_an_g2,
+        'ag_fin_jaehrlich_pro_an_g2': ag_fin_jaehrlich_pro_an_g2,
+        'laufzeit_g2': laufzeit_g2,
+
+        ### Gruppe 3
+        'Arbeitnehmeranzahl_g3': arbeitnehmer_anzahl_g3,
+        'Zins Zusage_g3': zins_zusage_g3*100,
+        'an_fin_jaehrlich_pro_an_g3': an_fin_jaehrlich_pro_an_g3,
+        'ag_fin_jaehrlich_pro_an_g3': ag_fin_jaehrlich_pro_an_g3,
+        'laufzeit_g3': laufzeit_g3,
+
+        'darlehenszins': darlehenszins*100,
+        'psv_beitragssatz': psv_beitragssatz*100,
+        'uk_verwaltung_jaehrlich_pro_an': uk_verwaltung_jaehrlich_pro_an,
+        'uk_verwaltung_einmalig_im_ersten_jahr': uk_verwaltung_einmalig_im_ersten_jahr*100,
+        'p1_anlage_liq': p1_anlage_liq*100,
+        'Anlagevermögen': anlagevermoegen,
+        'Vorräte': vorraete,
+        'Kurzfristige Forderungen': kurzfristige_forderungen,
+        'Zahlungsmittel': zahlungsmittel,
+        'kurzfristig (FK kurzfr.)': fk_kurzfristig,
+        'langfristig (FK langfr.)': fk_langfristig,
+        'beitragsbemessungsgrenze': beitragsbemessungsgrenze
     }
 
     # Convert dictionary to JSON string
@@ -444,62 +233,669 @@ if st.sidebar.button('Parameter Speichern'):
 
 
 
+#Balance sheet calculations
+umlaufvermögen = vorraete+kurzfristige_forderungen+zahlungsmittel
+gesamtkapital_aktiva = anlagevermoegen + umlaufvermögen
+fremdkapital = fk_kurzfristig + fk_langfristig
+eigenkapital = gesamtkapital_aktiva - fremdkapital
+gesamtkapital_passiva = eigenkapital + fremdkapital
+arbeitnehmer_anzahl_gesamt = arbeitnehmer_anzahl_g1 + arbeitnehmer_anzahl_g2 + arbeitnehmer_anzahl_g3
+
+# Create Dataframe
+df = pd.DataFrame()
+an_finanziert_jaehrlich_g1 = arbeitnehmer_anzahl_g1 * an_fin_jaehrlich_pro_an_g1
+an_finanziert_jaehrlich_g2 = arbeitnehmer_anzahl_g2 * an_fin_jaehrlich_pro_an_g2
+an_finanziert_jaehrlich_g3 = arbeitnehmer_anzahl_g3 * an_fin_jaehrlich_pro_an_g3
+an_finanziert_jaehrlich_gesamt = an_finanziert_jaehrlich_g1 + an_finanziert_jaehrlich_g2 + an_finanziert_jaehrlich_g3
+
+an_finanziert_jaehrlich_max_sv_frei_g1 = arbeitnehmer_anzahl_g1 * (beitragsbemessungsgrenze*12*0.04)
+an_finanziert_jaehrlich_max_sv_frei_g2 = arbeitnehmer_anzahl_g2 * (beitragsbemessungsgrenze*12*0.04)
+an_finanziert_jaehrlich_max_sv_frei_g3 = arbeitnehmer_anzahl_g3 * (beitragsbemessungsgrenze*12*0.04)
+an_finanziert_jaehrlich_gesamt_max_sv_frei = an_finanziert_jaehrlich_max_sv_frei_g1 + an_finanziert_jaehrlich_max_sv_frei_g2 + an_finanziert_jaehrlich_max_sv_frei_g3
+
+ag_finanziert_jaehrlich_g1 = arbeitnehmer_anzahl_g1*ag_fin_jaehrlich_pro_an_g1
+ag_finanziert_jaehrlich_g2 = arbeitnehmer_anzahl_g2*ag_fin_jaehrlich_pro_an_g2
+ag_finanziert_jaehrlich_g3 = arbeitnehmer_anzahl_g3*ag_fin_jaehrlich_pro_an_g3
+ag_finanziert_jaehrlich_gesamt = ag_finanziert_jaehrlich_g1 + ag_finanziert_jaehrlich_g2 + ag_finanziert_jaehrlich_g3
+
+an_ag_finanziert_jaehrlich_g1 = an_finanziert_jaehrlich_g1 + ag_finanziert_jaehrlich_g1
+an_ag_finanziert_jaehrlich_g2 = an_finanziert_jaehrlich_g2 + ag_finanziert_jaehrlich_g2
+an_ag_finanziert_jaehrlich_g3 = an_finanziert_jaehrlich_g3 + ag_finanziert_jaehrlich_g3
+an_ag_finanziert_jaehrlich_gesamt = an_ag_finanziert_jaehrlich_g1 + an_ag_finanziert_jaehrlich_g2 + an_ag_finanziert_jaehrlich_g3
+
+kapital_bei_ablauf_g1 = safe_division((pow((1+zins_zusage_g1),laufzeit_g1)-1),zins_zusage_g1)*(1+zins_zusage_g1)*an_ag_finanziert_jaehrlich_g1
+kapital_bei_ablauf_g2 = safe_division((pow((1+zins_zusage_g2),laufzeit_g2)-1),zins_zusage_g2)*(1+zins_zusage_g2)*an_ag_finanziert_jaehrlich_g2
+kapital_bei_ablauf_g3 = safe_division((pow((1+zins_zusage_g3),laufzeit_g3)-1),zins_zusage_g3)*(1+zins_zusage_g3)*an_ag_finanziert_jaehrlich_g3
+kapital_bei_ablauf_gesamt = kapital_bei_ablauf_g1 + kapital_bei_ablauf_g2 + kapital_bei_ablauf_g3
+
+debug = zins_zusage_g1
+
+
+davon_an_g1 = (safe_division(kapital_bei_ablauf_g1,an_ag_finanziert_jaehrlich_g1))*an_finanziert_jaehrlich_g1
+davon_an_g2 = (safe_division(kapital_bei_ablauf_g2,an_ag_finanziert_jaehrlich_g2))*an_finanziert_jaehrlich_g2
+davon_an_g3 = (safe_division(kapital_bei_ablauf_g3,an_ag_finanziert_jaehrlich_g3))*an_finanziert_jaehrlich_g3
+davon_an_gesamt = davon_an_g1 + davon_an_g2 + davon_an_g3
+
+#Initialize Columns:
+df['Jahr'] = range(1, laufzeit_max +2)
+
+# initialize fields
+df['Zulässiges Kassenvemögen'] = 0 #B
+df['Höchstzulässiges Kassenvermögen'] = 0 #C
+df['Zulässige Dotierung'] = 0 #D
+df['Überdotierung'] = 0 #E
+df['Darlehenszinsen'] = 0 #F
+df['Zinsanteil Überdotierung'] = 0 #G
+df['Steuern UK (e.V.)'] = 0 #H
+df['Versorgung fällig'] = 0 #I
+df['Darlehensänderung'] = 0 #J
+df['Tatsächliches Kassenvermögen'] = 100 #K
+df['Kosten UK-Verwaltung'] = 0 #L
+df['PSV Beitrag'] = 0 #M
+df['EU + SV Ersparnis'] = 0 #N
+df['Steuerersparnis'] = 0 #O
+df['Liquiditätsänderung'] = 0 #P
+df['Anlage Liquidität'] = 0 #Q
+df['Barwert Versorgung Gruppe 1'] = 0
+df['Barwert Versorgung Gruppe 2'] = 0
+df['Barwert Versorgung Gruppe 3'] = 0
+df['Barwert Versorgung gesamt'] = 0
+
+
+# Main loop
+for i in range(laufzeit_max+1):
+    if i == 0:
+        df.loc[i, 'Zulässiges Kassenvemögen'] = (kapital_bei_ablauf_gesamt / 10) * 0.25 * 8 #B
+        df.loc[i, 'Höchstzulässiges Kassenvermögen'] = df.loc[i, 'Zulässiges Kassenvemögen']*1.25 #C
+        df.loc[i, 'Zulässige Dotierung'] = (kapital_bei_ablauf_gesamt/10*0.25)
+        df.loc[i, 'Tatsächliches Kassenvermögen'] =df.loc[i, 'Zulässige Dotierung']
+        #df.loc[i, 'PSV Beitrag'] = (davon_an/10)*0.25*20*psv_beitragssatz #M ###vorGruppen
+        df.loc[i, 'PSV Beitrag'] = (davon_an_gesamt/10)*0.25*20*psv_beitragssatz
+        df.loc[i, 'Kosten UK-Verwaltung'] = (kapital_bei_ablauf_gesamt * uk_verwaltung_einmalig_im_ersten_jahr)+(arbeitnehmer_anzahl_gesamt * uk_verwaltung_jaehrlich_pro_an)
+        df.loc[i, 'EU + SV Ersparnis'] = min(an_finanziert_jaehrlich_gesamt*1.2,an_finanziert_jaehrlich_gesamt_max_sv_frei*1.2) + max(0,(an_finanziert_jaehrlich_gesamt-an_finanziert_jaehrlich_gesamt_max_sv_frei)) #
+        df.loc[i, 'Steuerersparnis'] = (df.loc[i, 'EU + SV Ersparnis']-df.loc[i,'PSV Beitrag']-df.loc[i,'Kosten UK-Verwaltung']-df.loc[i,'Zulässige Dotierung'])*steuer_ersparnis*-1
+        df.loc[i, 'Liquiditätsänderung'] = df.loc[i, 'EU + SV Ersparnis']+ df.loc[i,'Steuerersparnis']-df.loc[i, 'PSV Beitrag']-df.loc[i, 'Kosten UK-Verwaltung']
+        df.loc[i, 'Anlage Liquidität'] = df.loc[i, 'Liquiditätsänderung']
+        df.loc[i, 'Barwert Versorgung Gruppe 1'] = 0
+        df.loc[i, 'Barwert Versorgung Gruppe 2'] = 0
+        df.loc[i, 'Barwert Versorgung Gruppe 3'] = 0
+        df.loc[i, 'Barwert Versorgung gesamt'] = df.loc[i, 'Barwert Versorgung Gruppe 1'] + df.loc[i, 'Barwert Versorgung Gruppe 2'] + df.loc[i, 'Barwert Versorgung Gruppe 3']
+        pass
+
+    elif i == (laufzeit_max):
+        df.loc[i, 'Zulässiges Kassenvemögen'] = 0
+        df.loc[i, 'Höchstzulässiges Kassenvermögen'] = 0
+
+        if i == laufzeit_g1:
+            df.loc[i, 'Versorgung fällig'] = kapital_bei_ablauf_g1
+        elif i == laufzeit_g2:
+            df.loc[i, 'Versorgung fällig'] = kapital_bei_ablauf_g2
+        elif i == laufzeit_g3:
+            df.loc[i, 'Versorgung fällig'] = kapital_bei_ablauf_g3
+        else:
+            df.loc[i, 'Versorgung fällig'] = 0 #I
+
+        df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins #F ###Check
+        df.loc[i,'Tatsächliches Kassenvermögen'] = 0 ##ÄNDERUNG
+        df['Überdotierung'] = df['Tatsächliches Kassenvermögen'] - df['Höchstzulässiges Kassenvermögen'] #E
+
+        if df.loc[i-1, 'Überdotierung'] > 0:
+            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i-1, 'Überdotierung'] / df.loc[i-1, 'Tatsächliches Kassenvermögen']) * df.loc[i-1, 'Darlehenszinsen'] #G
+        else:
+            df.loc[i, 'Zinsanteil Überdotierung'] = 0 ##ÄNDERUNG
+
+        df.loc[df['Überdotierung'] >= 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK) #H
+
+        if (i == laufzeit_g1 or i == laufzeit_g2 or i == laufzeit_g3):
+            df.loc[i,'Zulässige Dotierung'] = df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i-1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)']
+
+        df.loc[i,'Darlehensänderung'] = df.loc[i, 'Zulässige Dotierung'] + df.loc[i, 'Darlehenszinsen'] - df.loc[i, 'Steuern UK (e.V.)'] - df.loc[i, 'Versorgung fällig']  #J ###ÄNDERUNG
+
+        df.loc[i, 'EU + SV Ersparnis'] = 0
+
+        if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g2+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g2)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g2+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g1 and i < laufzeit_g3:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g1+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g2+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g2)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        else:
+            df.loc[i, 'Kosten UK-Verwaltung'] = 0
+
+        if i > 2:
+            if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g2+kapital_bei_ablauf_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
+                df.loc[i, 'PSV Beitrag'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g2)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g2+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((kapital_bei_ablauf_g2+kapital_bei_ablauf_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1:
+                df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf_g1/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g2+1:
+                df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf_g2/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf_g3/10)*0.25*20*psv_beitragssatz
+            else:
+                df.loc[i, 'PSV Beitrag'] = 0
+        else:
+            if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
+                df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g2+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1:
+                df.loc[i, 'PSV Beitrag'] = (davon_an_g1/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g2+1:
+                df.loc[i, 'PSV Beitrag'] = (davon_an_g2/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = (davon_an_g3/10)*0.25*20*psv_beitragssatz
+            else:
+                df.loc[i, 'PSV Beitrag'] = 0
+
+        df['Steuerersparnis'] = (df['EU + SV Ersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O
+        df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)']-df['Versorgung fällig']
+        df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq)+df.loc[i, 'Liquiditätsänderung']
+        df.loc[i, 'Barwert Versorgung gesamt'] = df.loc[i, 'Barwert Versorgung Gruppe 1'] + df.loc[i, 'Barwert Versorgung Gruppe 2'] + df.loc[i, 'Barwert Versorgung Gruppe 3']
+        pass
+
+    else:
+        # calculations for subsequent years
+        if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g2+kapital_bei_ablauf_g3) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g1 and i < laufzeit_g2:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g2) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g2+kapital_bei_ablauf_g3) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g1 and i < laufzeit_g3:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g3) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g1:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g1) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g2:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g2) / 10) * 0.25 * 8 #B
+        elif i < laufzeit_g3:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = ((kapital_bei_ablauf_g3) / 10) * 0.25 * 8 #B
+        else:
+            df.loc[i, 'Zulässiges Kassenvemögen'] = 0
+
+        if i > 2:
+            if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g2+kapital_bei_ablauf_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
+                df.loc[i, 'PSV Beitrag'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g2)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g2+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((kapital_bei_ablauf_g2+kapital_bei_ablauf_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((kapital_bei_ablauf_g1+kapital_bei_ablauf_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1:
+                df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf_g1/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g2+1:
+                df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf_g2/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = (kapital_bei_ablauf_g3/10)*0.25*20*psv_beitragssatz
+            else:
+                df.loc[i, 'PSV Beitrag'] = 0
+        else:
+            if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
+                df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g2)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g2+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((davon_an_g2+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1 and i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = ((davon_an_g1+davon_an_g3)/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g1+1:
+                df.loc[i, 'PSV Beitrag'] = (davon_an_g1/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g2+1:
+                df.loc[i, 'PSV Beitrag'] = (davon_an_g2/10)*0.25*20*psv_beitragssatz
+            elif i < laufzeit_g3+1:
+                df.loc[i, 'PSV Beitrag'] = (davon_an_g3/10)*0.25*20*psv_beitragssatz
+            else:
+                df.loc[i, 'PSV Beitrag'] = 0
+
+        df.loc[i, 'Höchstzulässiges Kassenvermögen'] = df.loc[i, 'Zulässiges Kassenvemögen']*1.25 #C
+        df['Darlehenszinsen'] = df['Tatsächliches Kassenvermögen'].shift(fill_value=0) * darlehenszins #F ###Check
+
+        if i == laufzeit_g1:
+            df.loc[i, 'Versorgung fällig'] = kapital_bei_ablauf_g1
+        elif i == laufzeit_g2:
+            df.loc[i, 'Versorgung fällig'] = kapital_bei_ablauf_g2
+        elif i == laufzeit_g3:
+            df.loc[i, 'Versorgung fällig'] = kapital_bei_ablauf_g3
+        else:
+            df.loc[i, 'Versorgung fällig'] = 0 #I
+
+        if df.loc[i-1, 'Überdotierung'] > 0:
+            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i-1, 'Überdotierung'] / df.loc[i-1, 'Tatsächliches Kassenvermögen']) * df.loc[i-1, 'Darlehenszinsen'] #G
+        else:
+            df.loc[i, 'Zinsanteil Überdotierung'] = 0 ##ÄNDERUNG
+
+        df.loc[df['Überdotierung'] > 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK) #H
+
+        if (df.loc[i-1, 'Tatsächliches Kassenvermögen']+df.loc[i, 'Darlehenszinsen']+(kapital_bei_ablauf_gesamt/10)*0.25) <= df.loc[i, 'Zulässiges Kassenvemögen']:
+            df.loc[i,'Zulässige Dotierung'] = (kapital_bei_ablauf_gesamt/10)*0.25
+        elif ((df.loc[i-1, 'Tatsächliches Kassenvermögen']+df.loc[i, 'Darlehenszinsen']+(kapital_bei_ablauf_gesamt/10)*0.25) > df.loc[i, 'Zulässiges Kassenvemögen']):
+            if (df.loc[i, 'Zulässiges Kassenvemögen'] - df.loc[i-1, 'Tatsächliches Kassenvermögen'] - df.loc[i, 'Darlehenszinsen'])>0:
+                df.loc[i,'Zulässige Dotierung'] = df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i-1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)']
+            else:
+                df.loc[i,'Zulässige Dotierung'] = 0
+        else:
+            df.loc[i,'Zulässige Dotierung'] = 0
+
+        if (i == laufzeit_g1 or i == laufzeit_g2 or i == laufzeit_g3):# and df.loc[i-1, 'Tatsächliches Kassenvermögen'] <= df.loc[i,'Versorgung fällig']:
+            df.loc[i,'Zulässige Dotierung'] = max(df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i-1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)'],0)
+
+
+
+        df.loc[i,'Darlehensänderung'] = df.loc[i,'Zulässige Dotierung'] + df.loc[i,'Darlehenszinsen'] - df.loc[i,'Steuern UK (e.V.)'] - df.loc[i, 'Versorgung fällig']#J ###ÄNDERUNG
+        df.loc[i,'Tatsächliches Kassenvermögen'] = df.loc[i-1,'Tatsächliches Kassenvermögen'] + df.loc[i,'Darlehensänderung'] #- df.loc[i,'Versorgung fällig'] #K
+
+        df['Überdotierung'] = df['Tatsächliches Kassenvermögen'] - df['Höchstzulässiges Kassenvermögen'] #E
+
+
+        #df.loc[i, 'Kosten UK-Verwaltung'] = arbeitnehmer_anzahl_gesamt*uk_verwaltung_jaehrlich_pro_an #L
+
+        if i < laufzeit_g1+1 and i < laufzeit_g2+1 and i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g2+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g1+1 and i < laufzeit_g2+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g2)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g2+1 and i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g2+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g1+1 and i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1+arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g1+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g1)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g2+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g2)*uk_verwaltung_jaehrlich_pro_an
+        elif i < laufzeit_g3+1:
+            df.loc[i, 'Kosten UK-Verwaltung'] = (arbeitnehmer_anzahl_g3)*uk_verwaltung_jaehrlich_pro_an
+        else:
+            df.loc[i, 'Kosten UK-Verwaltung'] = 0
+
+
+
+        if i < laufzeit_g1 and i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g2+an_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g2+an_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3))) #
+        elif i < laufzeit_g1 and i < laufzeit_g2:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g2)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g2)))
+        elif i < laufzeit_g2 and i < laufzeit_g3:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g2+an_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_finanziert_jaehrlich_g2+an_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g2+an_finanziert_jaehrlich_max_sv_frei_g3)))
+        elif i < laufzeit_g1 and i < laufzeit_g3:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,((an_finanziert_jaehrlich_g1+an_finanziert_jaehrlich_g3)-(an_finanziert_jaehrlich_max_sv_frei_g1+an_finanziert_jaehrlich_max_sv_frei_g3)))
+        elif i < laufzeit_g1:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g1)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g1)*1.2) + max(0,(an_finanziert_jaehrlich_g1-an_finanziert_jaehrlich_max_sv_frei_g1)) #
+        elif i < laufzeit_g2:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g2)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g2)*1.2) + max(0,(an_finanziert_jaehrlich_g2-an_finanziert_jaehrlich_max_sv_frei_g2)) #
+        elif i < laufzeit_g3:
+            df.loc[i, 'EU + SV Ersparnis'] = min((an_finanziert_jaehrlich_g3)*1.2,(an_finanziert_jaehrlich_max_sv_frei_g3)*1.2) + max(0,(an_finanziert_jaehrlich_g3-an_finanziert_jaehrlich_max_sv_frei_g3)) #
+        else:
+            df.loc[i, 'EU + SV Ersparnis'] = 0
+        #
 
 
 
 
 
 
+        #df.loc[i, 'EU + SV Ersparnis'] = min(an_finanziert_jaehrlich_gesamt*1.2,an_finanziert_jaehrlich_gesamt_max_sv_frei*1.2) + max(0,(an_finanziert_jaehrlich_gesamt-an_finanziert_jaehrlich_gesamt_max_sv_frei)) #
+        df['Steuerersparnis'] = (df['EU + SV Ersparnis']-df['PSV Beitrag']-df[ 'Kosten UK-Verwaltung']-df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O
+        df['Liquiditätsänderung'] = df['EU + SV Ersparnis']+df['Steuerersparnis']-df['PSV Beitrag']-df['Kosten UK-Verwaltung']-df['Steuern UK (e.V.)'] - df.loc[i, 'Versorgung fällig']  #P #Check if we have to make a different case for row 1
+        df.loc[i, 'Anlage Liquidität'] = df.loc[i-1, 'Anlage Liquidität']*(1+p1_anlage_liq) +df.loc[i, 'Liquiditätsänderung'] #Q
+
+        if i == 1:
+            df.loc[i, 'Barwert Versorgung Gruppe 1'] = an_ag_finanziert_jaehrlich_g1*(1+zins_zusage_g1)
+            df.loc[i, 'Barwert Versorgung Gruppe 2'] = an_ag_finanziert_jaehrlich_g2*(1+zins_zusage_g2)
+            df.loc[i, 'Barwert Versorgung Gruppe 3'] = an_ag_finanziert_jaehrlich_g3*(1+zins_zusage_g3)
+        else:
+            if i < laufzeit_g1:
+                df.loc[i, 'Barwert Versorgung Gruppe 1'] = df.loc[i-1, 'Barwert Versorgung Gruppe 1']*(1+zins_zusage_g1) + an_ag_finanziert_jaehrlich_g1*(1+zins_zusage_g1)
+            else:
+                df.loc[i, 'Barwert Versorgung Gruppe 1'] = 0
+            if i < laufzeit_g2:
+                df.loc[i, 'Barwert Versorgung Gruppe 2'] = df.loc[i-1, 'Barwert Versorgung Gruppe 2']*(1+zins_zusage_g2) + an_ag_finanziert_jaehrlich_g2*(1+zins_zusage_g2)
+            else:
+                df.loc[i, 'Barwert Versorgung Gruppe 2'] = 0
+            if i < laufzeit_g3:
+                df.loc[i, 'Barwert Versorgung Gruppe 3'] = df.loc[i-1, 'Barwert Versorgung Gruppe 3']*(1+zins_zusage_g3) + an_ag_finanziert_jaehrlich_g3*(1+zins_zusage_g3)
+            else:
+                df.loc[i, 'Barwert Versorgung Gruppe 3'] = 0
+
+        df.loc[i, 'Barwert Versorgung gesamt'] = df.loc[i, 'Barwert Versorgung Gruppe 1'] + df.loc[i, 'Barwert Versorgung Gruppe 2'] + df.loc[i, 'Barwert Versorgung Gruppe 3']
 
 
 
+#Logo
+logo_path = "ressources/demak.png"  # Adjust the path to your logo file
+logo = Image.open(logo_path)
+new_size = (int(logo.width * 1), int(logo.height * 1))
+resized_logo = logo.resize(new_size)
+st.image(resized_logo)
+
+# Row A1
+st.title('KPIs')
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("AN finanziert jährlich gesamt",format_german(an_finanziert_jaehrlich_gesamt))
+col2.metric("AG finanziert jährlich gesamt",format_german(ag_finanziert_jaehrlich_gesamt))
+col3.metric("AN + AG finanziert jährlich gesamt",format_german(an_ag_finanziert_jaehrlich_gesamt))
+col4.metric("Kapital bei Ablauf",format_german(kapital_bei_ablauf_gesamt))
+
+#Row A2
+col1, col2, col3, col4 = st.columns(4)
+#col1.metric("DEBUG",format_german(debug))
+col4.metric("davon AN",format_german(davon_an_gesamt))
+
+# Display the DataFrame as a table in Streamlit
+df = df.round(2)
+st.dataframe(df)
+
+csv = df.to_csv(index=False)
+st.download_button(
+    label="Als CSV herunterladen",
+    data=csv,
+    file_name="data.csv",
+    mime="text/csv",
+)
+
+#Header
+st.title("   ")
+st.title("Eröffnungsbilanz")
+aktiva, passiva = st.columns(2)
+with aktiva:
+    st.header("Aktiva")
+with passiva:
+    st.header("Passiva")
+
+st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
+
+#Sheet
+aktiva_label, aktiva_value, passiva_label, passiva_value = st.columns(4)
+
+with aktiva_label:
+    st.subheader("1 Anlagevermögen")
+    st.subheader("2 Umlaufvermögen")
+    st.subheader("2.1 Vorräte")
+    st.subheader("2.2 kurzfristige Forderungen")
+    st.subheader("2.3 Zahlungsmittel")
+with aktiva_value:
+    st.subheader(format_german(anlagevermoegen))
+    st.subheader(format_german(umlaufvermögen))
+    st.subheader(format_german(vorraete))
+    st.subheader(format_german(kurzfristige_forderungen))
+    st.subheader(format_german(zahlungsmittel))
+with passiva_label:
+    st.subheader("1 Eigenkapital")
+    st.subheader("2 Fremdkapital")
+    st.subheader("2.1 kurzfristig (FK kurzfr.)")
+    st.subheader("2.2 langfristig (FK langfr.)")
+with passiva_value:
+    st.subheader(format_german(eigenkapital))
+    st.subheader(format_german(fremdkapital))
+    st.subheader(format_german(fk_kurzfristig))
+    st.subheader(format_german(fk_langfristig))
+
+st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
+
+# Create two columns for balance sheet
+gk_aktiva_label, gk_aktiva_value, gk_passiva_label, gk_passiva_value = st.columns(4)
+with gk_aktiva_label:
+    st.subheader("Gesamtkapital Aktiva")
+with gk_aktiva_value:
+    formatted = gesamtkapital_aktiva #locale.format_string("%d", gesamtkapital_aktiva, grouping=True)
+    st.subheader(format_german(gesamtkapital_aktiva)) #st.subheader(format_german())
+with gk_passiva_label:
+    st.subheader("Gesamtkapital Passiva")
+with gk_passiva_value:
+    formatted = gesamtkapital_passiva #locale.format_string("%d", gesamtkapital_passiva, grouping=True)
+    st.subheader(format_german(gesamtkapital_passiva))
+
+
+#Finanzwirtschaftliche Bilanzkennzahlen
+eigenkapital_quote_1 = safe_division(eigenkapital,gesamtkapital_passiva)
+anspannungsgrad_1 = safe_division(fremdkapital,gesamtkapital_passiva)
+statischer_verschuldungsgrad_1 = safe_division(fremdkapital,eigenkapital)
+intensitaet_langfristiges_kapital_1 = safe_division((eigenkapital+fk_langfristig),gesamtkapital_passiva)
+liquiditaet_1_grades_1 = safe_division(zahlungsmittel,fk_kurzfristig)
+liquiditaet_2_grades_1 = safe_division((zahlungsmittel+kurzfristige_forderungen),fk_kurzfristig)
+liquiditaet_3_grades_1 = safe_division((zahlungsmittel+kurzfristige_forderungen+vorraete),fk_kurzfristig)
+net_working_capital_1 = umlaufvermögen-fk_kurzfristig
+deckungsgrad_a_1 = safe_division(eigenkapital,anlagevermoegen)
+deckungsgrad_b_1 = safe_division((eigenkapital+fk_langfristig),anlagevermoegen)
+
+st.title("   ")
+st.title("Finanzwirtschaftliche Bilanzkennzahlen")
+col1, col2, col3, col4, col5 = st.columns(5)
+
+
+if show_eigenkapital_quote:
+    col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_1))
+if show_intensitaet_langfristiges_kapital:
+    col1.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_1))
+if show_liquiditaet_1_grades:
+    col2.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_1))
+if show_anspannungsgrad:
+    col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_1))
+if show_liquiditaet_2_grades:
+    col3.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_1))
+if show_statischer_verschuldungsgrad:
+    col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_1))
+if show_liquiditaet_3_grades:
+    col4.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_1))
+if show_deckungsgrad_a:
+    col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_1))
+if show_net_working_capital:
+    col5.metric("Net Working Capital", format_german(net_working_capital_1))
+if show_deckungsgrad_b:
+    col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_1))
+
+
+if bilanzverlaengerung_j_n == 'ja':
+    bilanzverlängerung_txt = 'bei'
+elif bilanzverlaengerung_j_n == 'nein':
+    bilanzverlängerung_txt = 'ohne'
+else:
+    bilanzverlängerung_txt = 'error'
+
+#Header
+st.title("   ")
+st.title("Musterbilanz nach "+ f"{bilanz_nach_jahren} Jahren und Liquiditätsanlage "+ f"{to_percentage(p1_anlage_liq)} "+ f"{bilanzverlängerung_txt} Bilanzverlängerung ")
+
+aktiva, passiva = st.columns(2)
+with aktiva:
+    st.header("Aktiva")
+with passiva:
+    st.header("Passiva")
+
+st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
+
+#Sheet
+aktiva_label, aktiva_value, passiva_label, passiva_value = st.columns(4)
+
+#Balance sheet calculations
+anlagevermoegen_2 = anlagevermoegen
+vorraete_2 = vorraete
+kurzfristige_forderungen_2 = kurzfristige_forderungen
+
+if bilanzverlaengerung_j_n == 'ja':
+    if bilanz_nach_jahren == laufzeit_max+1:
+        zahlungsmittel_2 = df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität'] + zahlungsmittel
+    else:
+        zahlungsmittel_2 = df.loc[bilanz_nach_jahren, 'Anlage Liquidität'] + zahlungsmittel
+elif bilanzverlaengerung_j_n == 'nein':
+    zahlungsmittel_2 = zahlungsmittel
+else:
+    zahlungsmittel_2 = 0
+
+##umlaufvermögen_2 = vorraete_2 + kurzfristige_forderungen_2 + zahlungsmittel_2
+##gesamtkapital_aktiva_2 = anlagevermoegen + umlaufvermögen_2
+##fk_kurzfristig_2 = fk_kurzfristig
+
+if bilanzverlaengerung_j_n == 'ja':
+    fk_kurzfristig_2 = fk_kurzfristig
+elif bilanzverlaengerung_j_n == 'nein':
+    if bilanz_nach_jahren == laufzeit_max+1:
+        fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität']
+        if fk_kurzfristig_2 < 0:
+            zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
+            fk_kurzfristig_2 = 0
+    else:
+        fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren, 'Anlage Liquidität']
+        if fk_kurzfristig_2 < 0:
+            zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
+            fk_kurzfristig_2 = 0
+else:
+    fk_kurzfristig_2 = 0
+
+if bilanz_nach_jahren == laufzeit_max+1:
+    fk_langfristig_2 = fk_langfristig
+else:
+    fk_langfristig_2 = fk_langfristig + df.loc[bilanz_nach_jahren, 'Tatsächliches Kassenvermögen']
+if bilanz_nach_jahren != laufzeit_max+1:
+    if (df.loc[bilanz_nach_jahren-1, 'Barwert Versorgung gesamt']-df.loc[bilanz_nach_jahren-1, 'Tatsächliches Kassenvermögen'])>0:
+        bilanzanhang_2 = df.loc[bilanz_nach_jahren, 'Barwert Versorgung gesamt']-df.loc[bilanz_nach_jahren, 'Tatsächliches Kassenvermögen']
+    else:
+        bilanzanhang_2 = 0
+else:
+    bilanzanhang_2 = 0
+
+umlaufvermögen_2 = vorraete_2 + kurzfristige_forderungen_2 + zahlungsmittel_2
+gesamtkapital_aktiva_2 = anlagevermoegen + umlaufvermögen_2
+#fk_kurzfristig_2 = fk_kurzfristig
+
+fremdkapital_2 = fk_kurzfristig_2 + fk_langfristig_2 #+ bilanzanhang_2
+eigenkapital_2 = gesamtkapital_aktiva_2 - fremdkapital_2
+gesamtkapital_passiva_2 = eigenkapital_2 + fremdkapital_2
+
+with aktiva_label:
+    st.subheader("1 Anlagevermögen")
+    st.subheader("2 Umlaufvermögen")
+    st.subheader("2.1 Vorräte")
+    st.subheader("2.2 kurzfristige Forderungen")
+    st.subheader("2.3 Zahlungsmittel")
+with aktiva_value:
+    st.subheader(format_german(anlagevermoegen_2))
+    st.subheader(format_german(umlaufvermögen_2))
+    st.subheader(format_german(vorraete_2))
+    st.subheader(format_german(kurzfristige_forderungen_2))
+    st.subheader(format_german(zahlungsmittel_2))
+with passiva_label:
+    st.subheader("1 Eigenkapital")
+    st.subheader("2 Fremdkapital")
+    st.subheader("2.1 kurzfristig (FK kurzfr.)")
+    st.subheader("2.2 langfristig (FK langfr.)")
+    #st.subheader("3 Bilanzanhang")
+with passiva_value:
+    st.subheader(format_german(eigenkapital_2))
+    st.subheader(format_german(fremdkapital_2))
+    st.subheader(format_german(fk_kurzfristig_2))
+    st.subheader(format_german(fk_langfristig_2))
+    #st.subheader(format_german(bilanzanhang_2))
+
+st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
+
+# Create two columns for balance sheet
+gk_aktiva_label, gk_aktiva_value, gk_passiva_label, gk_passiva_value = st.columns(4)
+with gk_aktiva_label:
+    st.subheader("Gesamtkapital Aktiva")
+with gk_aktiva_value:
+    formatted = format_german(gesamtkapital_aktiva_2) #locale.format_string("%d", gesamtkapital_aktiva_2, grouping=True)
+    st.subheader(format_german(gesamtkapital_aktiva_2))
+    #st.subheader(f'{gesamtkapital_aktiva_2:,}'.replace(',','.'))
+with gk_passiva_label:
+    st.subheader("Gesamtkapital Passiva")
+    if bilanzanhang_einblenden == "ja":
+        st.subheader("_Bilanzanhang_")
+with gk_passiva_value:
+    formatted = gesamtkapital_passiva_2 #locale.format_string("%d", gesamtkapital_passiva_2, grouping=True)
+    st.subheader(format_german(gesamtkapital_passiva_2))
+    if bilanzanhang_einblenden == "ja":
+        st.subheader(format_german(bilanzanhang_2))
 
 
 
+#Finanzwirtschaftliche Bilanzkennzahlen
+eigenkapital_quote_2 = safe_division(eigenkapital_2,gesamtkapital_passiva_2)
+anspannungsgrad_2 = safe_division(fremdkapital_2,gesamtkapital_passiva_2)
+statischer_verschuldungsgrad_2 = safe_division(fremdkapital_2,eigenkapital_2)
+intensitaet_langfristiges_kapital_2 = safe_division((eigenkapital_2+fk_langfristig_2),gesamtkapital_passiva_2)
+liquiditaet_1_grades_2 = safe_division(zahlungsmittel_2,fk_kurzfristig_2)
+liquiditaet_2_grades_2 = safe_division((zahlungsmittel_2+kurzfristige_forderungen_2),fk_kurzfristig_2)
+liquiditaet_3_grades_2 = safe_division((zahlungsmittel_2+kurzfristige_forderungen+vorraete_2),fk_kurzfristig_2)
+net_working_capital_2 = umlaufvermögen_2-fk_kurzfristig_2
+deckungsgrad_a_2 = safe_division(eigenkapital_2,anlagevermoegen_2)
+deckungsgrad_b_2 = safe_division((eigenkapital_2+fk_langfristig_2),anlagevermoegen_2)
+
+eigenkapital_quote_2_change = safe_division(eigenkapital_quote_2,eigenkapital_quote_1)-1
+anspannungsgrad_2_change = safe_division(anspannungsgrad_2,anspannungsgrad_1)-1
+statischer_verschuldungsgrad_2_change = safe_division(statischer_verschuldungsgrad_2,statischer_verschuldungsgrad_1)-1
+intensitaet_langfristiges_kapital_2_change = safe_division(intensitaet_langfristiges_kapital_2,intensitaet_langfristiges_kapital_1)-1
+liquiditaet_1_grades_2_change = safe_division(liquiditaet_1_grades_2,liquiditaet_1_grades_1)-1
+liquiditaet_2_grades_2_change = safe_division(liquiditaet_2_grades_2,liquiditaet_2_grades_1)-1
+liquiditaet_3_grades_2_change = safe_division(liquiditaet_3_grades_2,liquiditaet_3_grades_1)-1
+net_working_capital_2_change = safe_division(net_working_capital_2,net_working_capital_1)-1
+deckungsgrad_a_2_change = safe_division(deckungsgrad_a_2,deckungsgrad_a_1)-1
+deckungsgrad_b_2_change = safe_division(deckungsgrad_b_2,deckungsgrad_b_1)-1
 
 
+if show_previous_balance_sheet == "ja":
+    st.title("   ")
+    st.title("Finanzwirtschaftliche Bilanzkennzahlen Eröffnungsbilanz")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    if show_eigenkapital_quote:
+        col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_1))
+    if show_intensitaet_langfristiges_kapital:
+        col1.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_1))
+    if show_liquiditaet_1_grades:
+        col2.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_1))
+    if show_anspannungsgrad:
+        col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_1))
+    if show_liquiditaet_2_grades:
+        col3.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_1))
+    if show_statischer_verschuldungsgrad:
+        col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_1))
+    if show_liquiditaet_3_grades:
+        col4.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_1))
+    if show_deckungsgrad_a:
+        col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_1))
+    if show_net_working_capital:
+        col5.metric("Net Working Capital", format_german(net_working_capital_1))
+    if show_deckungsgrad_b:
+        col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_1))
 
-# Row A
-st.markdown('### Metrics')
-col1, col2, col3 = st.columns(3)
-col1.metric("Temperature", "70 °F", "1.2 °F")
-col2.metric("Wind", "9 mph", "-8%")
-col3.metric("Humidity", "86%", "4%")
-
-st.markdown('### Test')
-st.number_input('Enter a number')
-
-# Row B
-seattle_weather = pd.read_csv('https://raw.githubusercontent.com/tvst/plost/master/data/seattle-weather.csv', parse_dates=['date'])
-stocks = pd.read_csv('https://raw.githubusercontent.com/dataprofessor/data/master/stocks_toy.csv')
-
-c1, c2 = st.columns((7,3))
-with c1:
-    st.markdown('### Heatmap')
-    plost.time_hist(
-        data=seattle_weather,
-        date='date',
-        x_unit='week',
-        y_unit='day',
-        color=time_hist_color,
-        aggregate='median',
-        legend=None,
-        height=345,
-        use_container_width=True)
-with c2:
-    st.markdown('### Donut chart')
-    plost.donut_chart(
-        data=stocks,
-        theta=donut_theta,
-        color='company',
-        legend='bottom',
-        use_container_width=True)
-
-# Row C
-st.markdown('### Line chart')
-st.line_chart(seattle_weather, x = 'date', y = plot_data, height = plot_height)
-
-
+st.title("   ")
+st.title("Finanzwirtschaftliche Bilanzkennzahlen nach "+ f"{bilanz_nach_jahren}" + " Jahren")
+col1, col2, col3, col4, col5 = st.columns(5)
+if show_eigenkapital_quote:
+    col1.metric("Eigenkapitalquote", to_percentage(eigenkapital_quote_2), to_percentage(eigenkapital_quote_2_change))
+if show_intensitaet_langfristiges_kapital:
+    col1.metric("Intensität langfristigen Kapitals", to_percentage(intensitaet_langfristiges_kapital_2), to_percentage(intensitaet_langfristiges_kapital_2_change))
+if show_liquiditaet_1_grades:
+    col2.metric("Liquidität 1. Grades", to_percentage(liquiditaet_1_grades_2), to_percentage(liquiditaet_1_grades_2_change))
+if show_anspannungsgrad:
+    col2.metric("Anspannungsgrad", to_percentage(anspannungsgrad_2), to_percentage(anspannungsgrad_2_change))
+if show_liquiditaet_2_grades:
+    col3.metric("Liquidität 2. Grades", to_percentage(liquiditaet_2_grades_2), to_percentage(liquiditaet_2_grades_2_change))
+if show_statischer_verschuldungsgrad:
+    col3.metric("Statischer Verschuldungsgrad", to_percentage(statischer_verschuldungsgrad_2), to_percentage(statischer_verschuldungsgrad_2_change))
+if show_liquiditaet_3_grades:
+    col4.metric("Liquidität 3. Grades", to_percentage(liquiditaet_3_grades_2), to_percentage(liquiditaet_3_grades_2_change))
+if show_deckungsgrad_a:
+    col4.metric("Deckungsgrad A", to_percentage(deckungsgrad_a_2), to_percentage(deckungsgrad_a_2_change))
+if show_net_working_capital:
+    col5.metric("Net Working Capital", format_german(net_working_capital_2), to_percentage(net_working_capital_2_change))
+if show_deckungsgrad_b:
+    col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_2), to_percentage(deckungsgrad_b_2_change))
 
 ###Markdowns
 st.markdown("""
