@@ -934,7 +934,7 @@ div[data-testid="metric-container"] {
     border-radius: 15px !important;
     border-left: 0.5rem solid #fdff00 !important;
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
-   overflow-wrap: break-word;
+   overflow-wrap: break-word !important;
 }
 
 </style>
