@@ -26,7 +26,7 @@ def check_password():
         "Passwort", type="password", on_change=password_entered, key="password"
     )
     if "password_correct" in st.session_state:
-        st.error("Passwort falsch")
+        st.error("Passwort falsch test")
     return False
 
 if not check_password():
