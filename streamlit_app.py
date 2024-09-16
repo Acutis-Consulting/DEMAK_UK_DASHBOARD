@@ -34,8 +34,25 @@ if not check_password():
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
-with open('style.css') as f:
-    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+custom_metric_html = """
+    <div style="background-color: #F0F8FF;
+                border: 1px solid #CCCCCC;
+                padding: 20px;
+                border-radius: 15px;
+                margin-bottom: 10px;
+                width: 100%;
+                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+                overflow-wrap: break-word;">
+        <div style="padding-left: 10px;">
+            <div style="font-weight: bold; color: #333; font-size: 16px;">
+                {label}
+            </div>
+            <div style="font-size: 36px; font-weight: bold; color: #333;">
+                {value}
+            </div>
+        </div>
+    </div>
+"""
 
 def to_percentage(value):
     #v1 = "{:,.2f}".format(value * 100).replace('.', ',')
@@ -613,15 +630,15 @@ st.image(resized_logo)
 # Row A1
 st.title('KPIs')
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("AN finanziert jährlich gesamt",format_german(an_finanziert_jaehrlich_gesamt))
-col2.metric("AG finanziert jährlich gesamt",format_german(ag_finanziert_jaehrlich_gesamt))
-col3.metric("AN + AG finanziert jährlich gesamt",format_german(an_ag_finanziert_jaehrlich_gesamt))
-col4.metric("Kapital bei Ablauf",format_german(kapital_bei_ablauf_gesamt))
-
+# Example for AN financed metric using HTML instead of st.metric
+col1.markdown(custom_metric_html.format(label="AN finanziert jährlich gesamt", value=format_german(an_finanziert_jaehrlich_gesamt)), unsafe_allow_html=True)
+col2.markdown(custom_metric_html.format(label="AG finanziert jährlich gesamt", value=format_german(ag_finanziert_jaehrlich_gesamt)), unsafe_allow_html=True)
+col3.markdown(custom_metric_html.format(label="AN + AG finanziert jährlich gesamt", value=format_german(an_ag_finanziert_jaehrlich_gesamt)), unsafe_allow_html=True)
+col4.markdown(custom_metric_html.format(label="Kapital bei Ablauf", value=format_german(kapital_bei_ablauf_gesamt)), unsafe_allow_html=True)
 #Row A2
 col1, col2, col3, col4 = st.columns(4)
 #col1.metric("DEBUG",format_german(debug))
-col4.metric("davon AN",format_german(davon_an_gesamt))
+col4.markdown(custom_metric_html.format(label="davon AN", value=format_german(davon_an_gesamt)), unsafe_allow_html=True)
 
 # Display the DataFrame as a table in Streamlit
 df = df.round(2)
@@ -924,19 +941,4 @@ if show_net_working_capital:
 if show_deckungsgrad_b:
     col5.metric("Deckungsgrad B", to_percentage(deckungsgrad_b_2), to_percentage(deckungsgrad_b_2_change))
 
-###Markdowns
-st.markdown("""
-<style>
-div[data-testid="metric-container"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid #CCCCCC !important;
-    padding: 5% 5% 5% 10% !important;
-    border-radius: 15px !important;
-    border-left: 0.5rem solid #fdff00 !important;
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
-   overflow-wrap: break-word !important;
-}
 
-</style>
-"""
-            , unsafe_allow_html=True)
