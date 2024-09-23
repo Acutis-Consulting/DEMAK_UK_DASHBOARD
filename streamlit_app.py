@@ -35,20 +35,56 @@ if not check_password():
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
 custom_metric_html = """
-    <div style="background-color: #F0F8FF;
+    <div style="display: flex;
+                background-color: #F0F8FF;
                 border: 1px solid #CCCCCC;
-                padding: 20px;
+                padding: 0;
                 border-radius: 15px;
                 margin-bottom: 10px;
                 width: 100%;
                 box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
                 overflow-wrap: break-word;">
-        <div style="padding-left: 10px;">
-            <div style="font-weight: bold; color: #333; font-size: 16px;">
+        <div style="width: 10px;
+                    background-color: #fdff00; 
+                    border-top-left-radius: 15px;
+                    border-bottom-left-radius: 15px;">
+        </div>
+        <div style="padding: 20px 20px 20px 10px; flex-grow: 1;">
+            <div style="font-weight: bold; color: #41528b; font-size: 16px;">
                 {label}
             </div>
-            <div style="font-size: 36px; font-weight: bold; color: #333;">
+            <div style="font-size: 36px; font-weight: bold; color: #41528b;">
                 {value}
+            </div>
+        </div>
+    </div>
+"""
+
+
+custom_metric_html_with_change = """
+    <div style="display: flex;
+                background-color: #F0F8FF;
+                border: 1px solid #CCCCCC;
+                padding: 0;
+                border-radius: 15px;
+                margin-bottom: 10px;
+                width: 100%;
+                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+                overflow-wrap: break-word;">
+        <div style="width: 10px;
+                    background-color: #fdff00;
+                    border-top-left-radius: 15px;
+                    border-bottom-left-radius: 15px;">
+        </div>
+        <div style="padding: 20px 20px 20px 10px; flex-grow: 1;">
+            <div style="font-weight: bold; color: #41528b; font-size: 16px;">
+                {label}
+            </div>
+            <div style="font-size: 36px; font-weight: bold; color: #41528b;">
+                {value}
+            </div>
+            <div style="font-size: 25px; color: {change_color};">
+                {change}
             </div>
         </div>
     </div>
@@ -916,39 +952,17 @@ st.title("Finanzwirtschaftliche Bilanzkennzahlen nach "+ f"{bilanz_nach_jahren}"
 col1, col2, col3, col4, col5 = st.columns(5)
 
 
-#geändertes html für prozentuale KPIs
-custom_metric_html_with_change = """
-    <div style="background-color: #F0F8FF;
-                border: 1px solid #CCCCCC;
-                padding: 20px;
-                border-radius: 15px;
-                margin-bottom: 10px;
-                width: 100%;
-                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-                overflow-wrap: break-word;">
-        <div style="padding-left: 10px;">
-            <div style="font-weight: bold; color: #333; font-size: 16px;">
-                {label}
-            </div>
-            <div style="font-size: 36px; font-weight: bold; color: #333;">
-                {value}
-            </div>
-            <div style="font-size: 25px; color: {change_color};">
-                {change} 
-            </div>
-        </div>
-    </div>
-"""
 
-def get_change_color(change):
-    return "green" if float(change.replace('%','').replace(',','.')) > 0 else "red"
+
+def get_change_color(change_value):
+    return "green" if change_value > 0 else "red"
 
 if show_eigenkapital_quote:
     col1.markdown(custom_metric_html_with_change.format(
         label="Eigenkapitalquote",
         value=to_percentage(eigenkapital_quote_2),
         change=to_percentage(eigenkapital_quote_2_change),
-        change_color=get_change_color(to_percentage(eigenkapital_quote_2_change))),
+        change_color=get_change_color(eigenkapital_quote_2_change)),
         unsafe_allow_html=True)
 
 if show_intensitaet_langfristiges_kapital:
@@ -956,7 +970,7 @@ if show_intensitaet_langfristiges_kapital:
         label="Intensität langfristigen Kapitals",
         value=to_percentage(intensitaet_langfristiges_kapital_2),
         change=to_percentage(intensitaet_langfristiges_kapital_2_change),
-        change_color=get_change_color(to_percentage(intensitaet_langfristiges_kapital_2_change))),
+        change_color=get_change_color(intensitaet_langfristiges_kapital_2_change)),
         unsafe_allow_html=True)
 
 if show_liquiditaet_1_grades:
@@ -964,7 +978,7 @@ if show_liquiditaet_1_grades:
         label="Liquidität 1. Grades",
         value=to_percentage(liquiditaet_1_grades_2),
         change=to_percentage(liquiditaet_1_grades_2_change),
-        change_color=get_change_color(to_percentage(liquiditaet_1_grades_2_change))),
+        change_color=get_change_color(liquiditaet_1_grades_2_change)),
         unsafe_allow_html=True)
 
 if show_anspannungsgrad:
@@ -972,7 +986,7 @@ if show_anspannungsgrad:
         label="Anspannungsgrad",
         value=to_percentage(anspannungsgrad_2),
         change=to_percentage(anspannungsgrad_2_change),
-        change_color=get_change_color(to_percentage(anspannungsgrad_2_change))),
+        change_color=get_change_color(anspannungsgrad_2_change)),
         unsafe_allow_html=True)
 
 if show_liquiditaet_2_grades:
@@ -980,7 +994,7 @@ if show_liquiditaet_2_grades:
         label="Liquidität 2. Grades",
         value=to_percentage(liquiditaet_2_grades_2),
         change=to_percentage(liquiditaet_2_grades_2_change),
-        change_color=get_change_color(to_percentage(liquiditaet_2_grades_2_change))),
+        change_color=get_change_color(liquiditaet_2_grades_2_change)),
         unsafe_allow_html=True)
 
 if show_statischer_verschuldungsgrad:
@@ -988,7 +1002,7 @@ if show_statischer_verschuldungsgrad:
         label="Statischer Verschuldungsgrad",
         value=to_percentage(statischer_verschuldungsgrad_2),
         change=to_percentage(statischer_verschuldungsgrad_2_change),
-        change_color=get_change_color(to_percentage(statischer_verschuldungsgrad_2_change))),
+        change_color=get_change_color(statischer_verschuldungsgrad_2_change)),
         unsafe_allow_html=True)
 
 if show_liquiditaet_3_grades:
@@ -996,7 +1010,7 @@ if show_liquiditaet_3_grades:
         label="Liquidität 3. Grades",
         value=to_percentage(liquiditaet_3_grades_2),
         change=to_percentage(liquiditaet_3_grades_2_change),
-        change_color=get_change_color(to_percentage(liquiditaet_3_grades_2_change))),
+        change_color=get_change_color(liquiditaet_3_grades_2_change)),
         unsafe_allow_html=True)
 
 if show_deckungsgrad_a:
@@ -1004,7 +1018,7 @@ if show_deckungsgrad_a:
         label="Deckungsgrad A",
         value=to_percentage(deckungsgrad_a_2),
         change=to_percentage(deckungsgrad_a_2_change),
-        change_color=get_change_color(to_percentage(deckungsgrad_a_2_change))),
+        change_color=get_change_color(deckungsgrad_a_2_change)),
         unsafe_allow_html=True)
 
 if show_net_working_capital:
@@ -1012,7 +1026,7 @@ if show_net_working_capital:
         label="Net Working Capital",
         value=format_german(net_working_capital_2),
         change=to_percentage(net_working_capital_2_change),
-        change_color=get_change_color(to_percentage(net_working_capital_2_change))),
+        change_color=get_change_color(net_working_capital_2_change)),
         unsafe_allow_html=True)
 
 if show_deckungsgrad_b:
@@ -1020,7 +1034,7 @@ if show_deckungsgrad_b:
         label="Deckungsgrad B",
         value=to_percentage(deckungsgrad_b_2),
         change=to_percentage(deckungsgrad_b_2_change),
-        change_color=get_change_color(to_percentage(deckungsgrad_b_2_change))),
+        change_color=get_change_color(deckungsgrad_b_2_change)),
         unsafe_allow_html=True)
 
 
