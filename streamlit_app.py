@@ -6,19 +6,6 @@ import json
 import hmac
 import base64
 
-st.markdown(
-    """
-    <style>
-    .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
-    .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
-    .viewerBadge_text__1JaDK {
-        display: none;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 def check_password():
     """Returns `True` if the user had the correct password."""
 
@@ -46,6 +33,20 @@ if not check_password():
     st.stop()  # Do not continue if check_password is not True.
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
+
+st.markdown(
+    """
+    <style>
+    .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
+    .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
+    .viewerBadge_text__1JaDK {
+        display: none;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 
 custom_metric_html = """
     <div style="display: flex;
