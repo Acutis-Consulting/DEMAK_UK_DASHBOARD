@@ -34,20 +34,6 @@ if not check_password():
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
-st.markdown(
-    """
-    <style>
-    .css-1jc7ptx, .e1ewe7hr3, .viewerBadge_container__1QSob,
-    .styles_viewerBadge__1yB5_, .viewerBadge_link__1S137,
-    .viewerBadge_text__1JaDK {
-        display: none;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
 custom_metric_html = """
     <div style="display: flex;
                 background-color: #F0F8FF;
