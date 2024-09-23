@@ -6,6 +6,12 @@ import json
 import hmac
 import base64
 
+hide_github_icon = """
+#GithubIcon {
+  visibility: hidden;
+}
+"""
+
 def check_password():
     """Returns `True` if the user had the correct password."""
 
