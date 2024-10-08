@@ -882,7 +882,7 @@ intensitaet_langfristiges_kapital_2_change = safe_division(intensitaet_langfrist
 liquiditaet_1_grades_2_change = safe_division(liquiditaet_1_grades_2,liquiditaet_1_grades_1)-1
 liquiditaet_2_grades_2_change = safe_division(liquiditaet_2_grades_2,liquiditaet_2_grades_1)-1
 liquiditaet_3_grades_2_change = safe_division(liquiditaet_3_grades_2,liquiditaet_3_grades_1)-1
-net_working_capital_2_change = safe_division(net_working_capital_2,net_working_capital_1)-1
+net_working_capital_2_change = net_working_capital_2 - net_working_capital_1 #safe_division(net_working_capital_2,net_working_capital_1)-1
 deckungsgrad_a_2_change = safe_division(deckungsgrad_a_2,deckungsgrad_a_1)-1
 deckungsgrad_b_2_change = safe_division(deckungsgrad_b_2,deckungsgrad_b_1)-1
 
@@ -990,7 +990,7 @@ if show_net_working_capital:
     col5.markdown(custom_metric_html_with_change.format(
         label="Net Working Capital",
         value=format_german(net_working_capital_2),
-        change=to_percentage(net_working_capital_2_change),
+        change=format_german(net_working_capital_2_change),
         change_color=get_change_color(net_working_capital_2_change)),
         unsafe_allow_html=True)
 
