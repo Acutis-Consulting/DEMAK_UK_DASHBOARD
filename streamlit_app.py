@@ -764,12 +764,15 @@ aktiva_label, aktiva_value, passiva_label, passiva_value = st.columns(4)
 anlagevermoegen_2 = anlagevermoegen
 vorraete_2 = vorraete
 kurzfristige_forderungen_2 = kurzfristige_forderungen
+debug = df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität']
 
 if bilanzverlaengerung_j_n == 'ja':
-    if bilanz_nach_jahren == laufzeit_max+1:
-        zahlungsmittel_2 = df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität'] + zahlungsmittel
-    else:
-        zahlungsmittel_2 = df.loc[bilanz_nach_jahren, 'Anlage Liquidität'] + zahlungsmittel
+    zahlungsmittel_2 = df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität'] + zahlungsmittel
+
+    #if bilanz_nach_jahren == laufzeit_max+1:
+    #    zahlungsmittel_2 = df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität'] + zahlungsmittel
+    #else:
+    #    zahlungsmittel_2 = df.loc[bilanz_nach_jahren, 'Anlage Liquidität'] + zahlungsmittel
 elif bilanzverlaengerung_j_n == 'nein':
     zahlungsmittel_2 = zahlungsmittel
 else:
@@ -782,16 +785,20 @@ else:
 if bilanzverlaengerung_j_n == 'ja':
     fk_kurzfristig_2 = fk_kurzfristig
 elif bilanzverlaengerung_j_n == 'nein':
-    if bilanz_nach_jahren == laufzeit_max+1:
-        fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität']
-        if fk_kurzfristig_2 < 0:
-            zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
-            fk_kurzfristig_2 = 0
-    else:
-        fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren, 'Anlage Liquidität']
-        if fk_kurzfristig_2 < 0:
-            zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
-            fk_kurzfristig_2 = 0
+    fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität']
+    if fk_kurzfristig_2 < 0:
+        zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
+        fk_kurzfristig_2 = 0
+    #if bilanz_nach_jahren == laufzeit_max+1:
+    #    fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität']
+    #    if fk_kurzfristig_2 < 0:
+    #        zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
+    #        fk_kurzfristig_2 = 0
+    #else:
+    #    fk_kurzfristig_2 = fk_kurzfristig - df.loc[bilanz_nach_jahren, 'Anlage Liquidität']
+    #    if fk_kurzfristig_2 < 0:
+    #        zahlungsmittel_2 = zahlungsmittel_2 + abs(fk_kurzfristig_2)
+    #        fk_kurzfristig_2 = 0
 else:
     fk_kurzfristig_2 = 0
 
@@ -838,7 +845,7 @@ with passiva_value:
     st.subheader(format_german(fremdkapital_2))
     st.subheader(format_german(fk_kurzfristig_2))
     st.subheader(format_german(fk_langfristig_2))
-    #st.subheader(format_german(bilanzanhang_2))
+    st.subheader(format_german(debug))
 
 st.markdown('<hr style="border:1px solid black">', unsafe_allow_html=True)
 
