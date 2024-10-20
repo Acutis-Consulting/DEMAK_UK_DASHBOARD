@@ -244,7 +244,7 @@ for idx, group in enumerate(st.session_state['groups']):
     # Delete group button
     if st.sidebar.button(f'Gruppe {idx+1} löschen', key=f'delete_group_{group_id}'):
         st.session_state['groups'] = [g for g in st.session_state['groups'] if g['id'] != group_id]
-        st.experimental_rerun()
+        st.rerun()
 
 # Allgemeine Parameter (General Parameters)
 st.sidebar.title('Allgemeine Parameter')
