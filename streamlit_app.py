@@ -510,7 +510,6 @@ for i in range(laufzeit_max+1):
         df.loc[i, 'PSV Beitrag'] = (psv_basis/10)*0.25*20*psv_beitragssatz
 
 
-        #df.loc[i, 'Steuerersparnis'] = (df['EU + SV Ersparnis'] - df['PSV Beitrag'] - df['Kosten UK-Verwaltung'] - df['Darlehenszinsen']-df['Zulässige Dotierung'])*steuer_ersparnis*-1 #O
         df.loc[i,'Zulässige Dotierung'] = df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i - 1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)']
         df.loc[i,'Darlehensänderung'] = df.loc[i, 'Zulässige Dotierung'] + df.loc[i, 'Darlehenszinsen'] - df.loc[i, 'Steuern UK (e.V.)'] - df.loc[i, 'Versorgung fällig']  #J ###ÄNDERUNG
         df.loc[i, 'Steuerersparnis'] = (df.loc[i, 'EU + SV Ersparnis'] - df.loc[i, 'PSV Beitrag'] - df.loc[i, 'Kosten UK-Verwaltung'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i, 'Zulässige Dotierung']) * steuer_ersparnis * -1
@@ -575,7 +574,7 @@ for i in range(laufzeit_max+1):
         df.loc[i, 'Darlehenszinsen'] = df.loc[i - 1, 'Tatsächliches Kassenvermögen'] * darlehenszins
 
         if df.loc[i - 1, 'Überdotierung'] > 0:
-            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i - 1, 'Überdotierung'] / df.loc[i - 1, 'Tatsächliches Kassenvermögen']) * df.loc[i, 'Darlehenszinsen']
+            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i - 1, 'Überdotierung'] / df.loc[i - 1, 'Tatsächliches Kassenvermögen']) * df.loc[i - 1, 'Darlehenszinsen']
             df.loc[i, 'Steuern UK (e.V.)'] = df.loc[i, 'Zinsanteil Überdotierung'] * steuern_UK
         else:
             df.loc[i, 'Zinsanteil Überdotierung'] = 0
