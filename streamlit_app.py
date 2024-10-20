@@ -421,7 +421,7 @@ df['Zulässige Dotierung'] = 0
 df['Überdotierung'] = 0
 df['Darlehenszinsen'] = 0
 
-df['Zinsanteil Überdotierung'] = 0
+df['Zinsanteil Überdotierung Vorjahr'] = 0
 df['Steuern UK (e.V.)'] = 0
 df['Versorgung fällig'] = 0
 df['Darlehensänderung'] = 0
@@ -481,12 +481,12 @@ for i in range(laufzeit_max+1):
         df.loc[i, 'Überdotierung'] = df.loc[i, 'Tatsächliches Kassenvermögen'] - df.loc[i, 'Höchstzulässiges Kassenvermögen'] #E
         #df.loc[df['Überdotierung'] >= 0, 'Steuern UK (e.V.)'] = (df['Zinsanteil Überdotierung']*steuern_UK)
         if df.loc[i-1, 'Überdotierung'] > 0:
-            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i-1, 'Überdotierung'] / df.loc[i-1, 'Tatsächliches Kassenvermögen']) * df.loc[i-1, 'Darlehenszinsen'] #G
+            df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] = (df.loc[i-1, 'Überdotierung'] / df.loc[i-1, 'Tatsächliches Kassenvermögen']) * df.loc[i-1, 'Darlehenszinsen'] #G
         else:
-            df.loc[i, 'Zinsanteil Überdotierung'] = 0 ##ÄNDERUNG
+            df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] = 0 ##ÄNDERUNG
 
         if df.loc[i, 'Überdotierung'] >= 0:
-            df.loc[i, 'Steuern UK (e.V.)'] = df.loc[i, 'Zinsanteil Überdotierung']*steuern_UK
+            df.loc[i, 'Steuern UK (e.V.)'] = df.loc[i, 'Zinsanteil Überdotierung Vorjahr']*steuern_UK
         else:
             df.loc[i, 'Steuern UK (e.V.)'] = 100 #ÄNDERN!!
 
@@ -574,10 +574,10 @@ for i in range(laufzeit_max+1):
         df.loc[i, 'Darlehenszinsen'] = df.loc[i - 1, 'Tatsächliches Kassenvermögen'] * darlehenszins
 
         if df.loc[i - 1, 'Überdotierung'] > 0:
-            df.loc[i, 'Zinsanteil Überdotierung'] = (df.loc[i - 1, 'Überdotierung'] / df.loc[i - 1, 'Tatsächliches Kassenvermögen']) * df.loc[i - 1, 'Darlehenszinsen']
-            df.loc[i, 'Steuern UK (e.V.)'] = df.loc[i, 'Zinsanteil Überdotierung'] * steuern_UK
+            df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] = (df.loc[i - 1, 'Überdotierung'] / df.loc[i - 1, 'Tatsächliches Kassenvermögen']) * df.loc[i - 1, 'Darlehenszinsen']
+            df.loc[i, 'Steuern UK (e.V.)'] = df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] * steuern_UK
         else:
-            df.loc[i, 'Zinsanteil Überdotierung'] = 0
+            df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] = 0
             df.loc[i, 'Steuern UK (e.V.)'] = 0
 
         # Calculate 'Zulässige Dotierung'
