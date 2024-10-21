@@ -287,7 +287,7 @@ options = list(range(1, laufzeit_max + 2))
 st.sidebar.title('Musterbilanz')
 c1, c2 = st.sidebar.columns(2)
 with c1:
-    bilanz_nach_jahren = st.selectbox('Bilanz nach X Jahren:', options, index=0)
+    bilanz_nach_jahren = st.selectbox('Bilanz im Jahr:', options, index=0)
     show_previous_balance_sheet = st.selectbox('Bilanzkennzahlen einblenden:', ('nein', 'ja'))
 with c2:
     bilanzverlaengerung_j_n = st.selectbox('Bilanzverlängerung:', ('ja', 'nein'))
@@ -747,7 +747,7 @@ else:
 
 #Header
 st.title("   ")
-st.title("Musterbilanz nach "+ f"{bilanz_nach_jahren} Jahren und Liquiditätsanlage "+ f"{to_percentage(p1_anlage_liq)} "+ f"{bilanzverlängerung_txt} Bilanzverlängerung ")
+st.title("Musterbilanz im Jahr "+ f"{bilanz_nach_jahren} und Liquiditätsanlage "+ f"{to_percentage(p1_anlage_liq)} "+ f"{bilanzverlängerung_txt} Bilanzverlängerung ")
 
 aktiva, passiva = st.columns(2)
 with aktiva:
