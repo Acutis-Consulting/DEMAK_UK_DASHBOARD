@@ -919,7 +919,7 @@ if show_previous_balance_sheet == "ja":
         col5.markdown(custom_metric_html.format(label="Deckungsgrad B", value=to_percentage(deckungsgrad_b_1)), unsafe_allow_html=True)
 
 st.title("   ")
-st.title("Finanzwirtschaftliche Bilanzkennzahlen nach "+ f"{bilanz_nach_jahren}" + " Jahren")
+st.title("Finanzwirtschaftliche Bilanzkennzahlen im Jahr "+ f"{bilanz_nach_jahren}")
 col1, col2, col3, col4, col5 = st.columns(5)
 
 
