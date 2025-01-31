@@ -945,7 +945,7 @@ anlagevermoegen_2 = anlagevermoegen
 vorraete_2 = vorraete
 kurzfristige_forderungen_2 = kurzfristige_forderungen
 
-if bilanzverlaengerung_j_n == 'ja':
+if bilanzverlaengerung_j_n == 'ja' and (len(st.session_state['groups']) != 0):
     zahlungsmittel_2 = df.loc[bilanz_nach_jahren, 'Anlage Liquidität 1'] + zahlungsmittel
 elif bilanzverlaengerung_j_n == 'nein':
     zahlungsmittel_2 = zahlungsmittel
