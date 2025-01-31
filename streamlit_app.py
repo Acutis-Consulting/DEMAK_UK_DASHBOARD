@@ -876,9 +876,8 @@ st.title("Finanzwirtschaftliche Bilanzkennzahlen")
 col1, col2, col3, col4, col5 = st.columns(5)
 
 if show_eigenkapital_quote:
-    col1.markdown(custom_metric_html.format(label="Eigenkapitalquote",
-                                            value=to_percentage(eigenkapital_quote_1)),
-                  unsafe_allow_html=True)
+    #col1.markdown(custom_metric_html.format(label="Eigenkapitalquote", value=format_german(eigenkapital_quote_1)),unsafe_allow_html=True)
+    col1.markdown(custom_metric_html.format(label="Eigenkapital", value=format_german(eigenkapital)),unsafe_allow_html=True)
 if show_intensitaet_langfristiges_kapital:
     col1.markdown(custom_metric_html.format(label="Intensität langfristigen Kapitals",
                                             value=to_percentage(intensitaet_langfristiges_kapital_1)),
@@ -894,7 +893,8 @@ if show_anspannungsgrad:
                   unsafe_allow_html=True)
 if show_liquiditaet_2_grades:
     col3.markdown(custom_metric_html.format(label="Liquidität 2. Grades",
-                                            value=to_percentage(liquiditaet_2_grades_1)),
+                                            #value=to_percentage(liquiditaet_2_grades_1)),
+                                            value=format_german(zahlungsmittel + kurzfristige_forderungen)),
                   unsafe_allow_html=True)
 if show_statischer_verschuldungsgrad:
     col3.markdown(custom_metric_html.format(label="Statischer Verschuldungsgrad",
@@ -902,7 +902,8 @@ if show_statischer_verschuldungsgrad:
                   unsafe_allow_html=True)
 if show_liquiditaet_3_grades:
     col4.markdown(custom_metric_html.format(label="Liquidität 3. Grades",
-                                            value=to_percentage(liquiditaet_3_grades_1)),
+                                            #value=to_percentage(liquiditaet_3_grades_1)),
+                                            value=format_german(zahlungsmittel + kurzfristige_forderungen + vorraete)),
                   unsafe_allow_html=True)
 if show_deckungsgrad_a:
     col4.markdown(custom_metric_html.format(label="Deckungsgrad A",
@@ -1049,7 +1050,8 @@ if show_previous_balance_sheet == "ja":
     st.title("Finanzwirtschaftliche Bilanzkennzahlen Eröffnungsbilanz")
     col1, col2, col3, col4, col5 = st.columns(5)
     if show_eigenkapital_quote:
-        col1.markdown(custom_metric_html.format(label="Eigenkapitalquote", value=to_percentage(eigenkapital_quote_1)), unsafe_allow_html=True)
+        #col1.markdown(custom_metric_html.format(label="Eigenkapitalquote", value=to_percentage(eigenkapital_quote_1)), unsafe_allow_html=True)
+        col1.markdown(custom_metric_html.format(label="Eigenkapital", value=format_german(eigenkapital)), unsafe_allow_html=True)
     if show_intensitaet_langfristiges_kapital:
         col1.markdown(custom_metric_html.format(label="Intensität langfristigen Kapitals", value=to_percentage(intensitaet_langfristiges_kapital_1)), unsafe_allow_html=True)
     if show_liquiditaet_1_grades:
@@ -1058,11 +1060,13 @@ if show_previous_balance_sheet == "ja":
     if show_anspannungsgrad:
         col2.markdown(custom_metric_html.format(label="Anspannungsgrad", value=to_percentage(anspannungsgrad_1)), unsafe_allow_html=True)
     if show_liquiditaet_2_grades:
-        col3.markdown(custom_metric_html.format(label="Liquidität 2. Grades", value=to_percentage(liquiditaet_2_grades_1)), unsafe_allow_html=True)
+        #col3.markdown(custom_metric_html.format(label="Liquidität 2. Grades", value=to_percentage(liquiditaet_2_grades_1)), unsafe_allow_html=True)
+        col3.markdown(custom_metric_html.format(label="Liquidität 2. Grades", value=format_german(zahlungsmittel_2 + kurzfristige_forderungen_2)), unsafe_allow_html=True)
     if show_statischer_verschuldungsgrad:
         col3.markdown(custom_metric_html.format(label="Statischer Verschuldungsgrad", value=to_percentage(statischer_verschuldungsgrad_1)), unsafe_allow_html=True)
     if show_liquiditaet_3_grades:
-        col4.markdown(custom_metric_html.format(label="Liquidität 3. Grades", value=to_percentage(liquiditaet_3_grades_1)), unsafe_allow_html=True)
+        #col4.markdown(custom_metric_html.format(label="Liquidität 3. Grades", value=to_percentage(liquiditaet_3_grades_1)), unsafe_allow_html=True)
+        col4.markdown(custom_metric_html.format(label="Liquidität 3. Grades", value=format_german(zahlungsmittel_2 + kurzfristige_forderungen_2 + vorraete_2)), unsafe_allow_html=True)
     if show_deckungsgrad_a:
         col4.markdown(custom_metric_html.format(label="Deckungsgrad A", value=to_percentage(deckungsgrad_a_1)), unsafe_allow_html=True)
     if show_net_working_capital:
@@ -1076,10 +1080,13 @@ col1, col2, col3, col4, col5 = st.columns(5)
 
 if show_eigenkapital_quote:
     col1.markdown(custom_metric_html_with_change.format(
-        label="Eigenkapitalquote",
-        value=to_percentage(eigenkapital_quote_2),
-        change=to_percentage(eigenkapital_quote_2_change),
-        change_color=get_change_color(eigenkapital_quote_2_change)),
+        label="Eigenkapital",
+        #value=to_percentage(eigenkapital_quote_2),
+        value=format_german(eigenkapital_2),
+        #change=to_percentage(eigenkapital_quote_2_change),
+        #change_color=get_change_color(eigenkapital_quote_2_change)),
+        change=to_percentage(eigenkapital_quote_2),
+        change_color=get_change_color(eigenkapital_quote_2)),
         unsafe_allow_html=True)
 
 if show_intensitaet_langfristiges_kapital:
@@ -1095,8 +1102,10 @@ if show_liquiditaet_1_grades:
         label="Liquidität 1. Grades",
         #value=to_percentage(liquiditaet_1_grades_2),
         value=format_german(zahlungsmittel_2),
-        change=to_percentage(liquiditaet_1_grades_2_change),
-        change_color=get_change_color(liquiditaet_1_grades_2_change)),
+        #change=to_percentage(liquiditaet_1_grades_2_change),
+        #change_color=get_change_color(liquiditaet_1_grades_2_change)),
+        change=to_percentage(liquiditaet_1_grades_2),
+        change_color=get_change_color(liquiditaet_1_grades_2)),
         unsafe_allow_html=True)
 
 if show_anspannungsgrad:
@@ -1110,9 +1119,12 @@ if show_anspannungsgrad:
 if show_liquiditaet_2_grades:
     col3.markdown(custom_metric_html_with_change.format(
         label="Liquidität 2. Grades",
-        value=to_percentage(liquiditaet_2_grades_2),
-        change=to_percentage(liquiditaet_2_grades_2_change),
-        change_color=get_change_color(liquiditaet_2_grades_2_change)),
+        #value=to_percentage(liquiditaet_2_grades_2),
+        value=format_german(zahlungsmittel_2 + kurzfristige_forderungen_2),
+        #change=to_percentage(liquiditaet_2_grades_2_change),
+        #change_color=get_change_color(liquiditaet_2_grades_2_change)),
+        change=to_percentage(liquiditaet_2_grades_2),
+        change_color=get_change_color(liquiditaet_2_grades_2)),
         unsafe_allow_html=True)
 
 if show_statischer_verschuldungsgrad:
@@ -1126,9 +1138,12 @@ if show_statischer_verschuldungsgrad:
 if show_liquiditaet_3_grades:
     col4.markdown(custom_metric_html_with_change.format(
         label="Liquidität 3. Grades",
-        value=to_percentage(liquiditaet_3_grades_2),
-        change=to_percentage(liquiditaet_3_grades_2_change),
-        change_color=get_change_color(liquiditaet_3_grades_2_change)),
+        #value=to_percentage(liquiditaet_3_grades_2),
+        value=format_german(zahlungsmittel_2 + kurzfristige_forderungen_2 + vorraete_2),
+        #change=to_percentage(liquiditaet_3_grades_2_change),
+        #change_color=get_change_color(liquiditaet_3_grades_2_change)),
+        change=to_percentage(liquiditaet_3_grades_2),
+        change_color=get_change_color(liquiditaet_3_grades_2)),
         unsafe_allow_html=True)
 
 if show_deckungsgrad_a:
