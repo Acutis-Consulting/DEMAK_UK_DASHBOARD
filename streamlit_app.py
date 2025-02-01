@@ -158,8 +158,8 @@ if uploaded_file and 'uploaded_data_loaded' not in st.session_state:
     st.session_state['Zahlungsmittel'] = uploaded_data.get('Zahlungsmittel', 0)
     st.session_state['kurzfristig (FK kurzfr.)'] = uploaded_data.get('kurzfristig (FK kurzfr.)', 0)
     st.session_state['langfristig (FK langfr.)'] = uploaded_data.get('langfristig (FK langfr.)', 0)
-
     st.session_state['kreditzins'] = uploaded_data.get('kreditzins', 0.08)
+    st.session_state['dotierung'] = uploaded_data.get('dotierung', 'am Anfang')
 
     st.session_state['uploaded_data_loaded'] = True
 
@@ -177,7 +177,6 @@ else:
         st.session_state['p1_anlage_liq'] = 0.0
     if 'beitragsbemessungsgrenze' not in st.session_state:
         st.session_state['beitragsbemessungsgrenze'] = 7300
-
     if 'Anlagevermögen' not in st.session_state:
         st.session_state['Anlagevermögen'] = 0
     if 'Vorräte' not in st.session_state:
@@ -272,6 +271,7 @@ st.session_state['beitragsbemessungsgrenze'] = st.sidebar.number_input(
     min_value=0,
     value=st.session_state['beitragsbemessungsgrenze']
 )
+st.session_state['dotierung'] = st.sidebar.selectbox('Dotierung:', ('am Anfang', 'am Ende'))
 
 steuern_UK = 0.1583  # Fixed value
 steuer_ersparnis = 0.3  # Fixed value
@@ -359,7 +359,8 @@ if st.sidebar.button('Parameter Speichern'):
         'kurzfristig (FK kurzfr.)': st.session_state['kurzfristig (FK kurzfr.)'],
         'langfristig (FK langfr.)': st.session_state['langfristig (FK langfr.)'],
         'beitragsbemessungsgrenze': st.session_state['beitragsbemessungsgrenze'],
-        'kreditzins': st.session_state['kreditzins']
+        'kreditzins': st.session_state['kreditzins'],
+        'dotierung': st.session_state['dotierung']
     }
 
     json_str = json.dumps(data_to_save, indent=4)
@@ -381,6 +382,7 @@ zahlungsmittel = st.session_state['Zahlungsmittel']
 fk_kurzfristig = st.session_state['kurzfristig (FK kurzfr.)']
 fk_langfristig = st.session_state['langfristig (FK langfr.)']
 kreditzins = st.session_state['kreditzins']
+dotierung = st.session_state['dotierung']
 
 # Balance Sheet Calculations
 umlaufvermögen = vorraete + kurzfristige_forderungen + zahlungsmittel
@@ -476,7 +478,10 @@ for i in range(laufzeit_max+1):
     if i == 0:
         df.loc[i, 'Zulässiges Kassenvemögen'] = (kapital_bei_ablauf_gesamt / 10) * 0.25 * 8
         df.loc[i, 'Höchstzulässiges Kassenvermögen'] = df.loc[i, 'Zulässiges Kassenvemögen'] * 1.25
-        df.loc[i, 'Zulässige Dotierung'] = (kapital_bei_ablauf_gesamt / 10 * 0.25)
+        if dotierung == 'am Anfang':
+            df.loc[i, 'Zulässige Dotierung'] = (kapital_bei_ablauf_gesamt / 10 * 0.25)
+        else:
+            df.loc[i, 'Zulässige Dotierung'] = 0
         df.loc[i, 'Tatsächliches Kassenvermögen'] = df.loc[i, 'Zulässige Dotierung']
         df['Überdotierung'] = df.loc[i, 'Tatsächliches Kassenvermögen'] - df.loc[i, 'Höchstzulässiges Kassenvermögen']
         df['Darlehenszinsen'] = 0
@@ -520,10 +525,7 @@ for i in range(laufzeit_max+1):
         df.loc[i, 'Überdotierung'] = df.loc[i, 'Tatsächliches Kassenvermögen'] - df.loc[i, 'Höchstzulässiges Kassenvermögen']
 
         if df.loc[i-1, 'Überdotierung'] > 0:
-            df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] = (
-                                                                    df.loc[i-1, 'Überdotierung']
-                                                                    / df.loc[i-1, 'Tatsächliches Kassenvermögen']
-                                                            ) * df.loc[i-1, 'Darlehenszinsen']
+            df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] = (df.loc[i-1, 'Überdotierung'] / df.loc[i-1, 'Tatsächliches Kassenvermögen']) * df.loc[i-1, 'Darlehenszinsen']
         else:
             df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] = 0
 
@@ -549,13 +551,11 @@ for i in range(laufzeit_max+1):
             )
         df.loc[i, 'PSV Beitrag'] = (psv_basis/10)*0.25*20*psv_beitragssatz
 
-        df.loc[i, 'Zulässige Dotierung'] = (
-                df.loc[i, 'Zulässiges Kassenvemögen']
-                + df.loc[i, 'Versorgung fällig']
-                - df.loc[i, 'Darlehenszinsen']
-                - df.loc[i - 1, 'Tatsächliches Kassenvermögen']
-                + df.loc[i, 'Steuern UK (e.V.)']
-        )
+        if dotierung == 'am Anfang':
+            df.loc[i, 'Zulässige Dotierung'] = (df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i - 1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)'])
+        else:
+            df.loc[i, 'Zulässige Dotierung'] = kapital_bei_ablauf_gesamt - df.loc[i - 1, 'Tatsächliches Kassenvermögen'] - df.loc[i, 'Darlehenszinsen'] + df.loc[i, 'Steuern UK (e.V.)']
+
         df.loc[i, 'Darlehensänderung'] = (
                 df.loc[i, 'Zulässige Dotierung']
                 + df.loc[i, 'Darlehenszinsen']
@@ -658,30 +658,18 @@ for i in range(laufzeit_max+1):
             df.loc[i, 'Zinsanteil Überdotierung Vorjahr'] = 0
             df.loc[i, 'Steuern UK (e.V.)'] = 0
 
-        zulässige_dotierung_candidate = (
-                df.loc[i, 'Zulässiges Kassenvemögen']
-                + df.loc[i, 'Versorgung fällig']
-                - df.loc[i, 'Darlehenszinsen']
-                - df.loc[i - 1, 'Tatsächliches Kassenvermögen']
-                + df.loc[i, 'Steuern UK (e.V.)']
-        )
+        zulässige_dotierung_candidate = (df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i, 'Darlehenszinsen'] - df.loc[i - 1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Steuern UK (e.V.)'])
 
-        if (
-                df.loc[i - 1, 'Tatsächliches Kassenvermögen']
-                + df.loc[i, 'Darlehenszinsen']
-                + (remaining_kapital_bei_ablauf / 10) * 0.25
-        ) <= df.loc[i, 'Zulässiges Kassenvemögen']:
-            df.loc[i, 'Zulässige Dotierung'] = (remaining_kapital_bei_ablauf / 10) * 0.25
-        else:
-            if (
-                    df.loc[i, 'Zulässiges Kassenvemögen']
-                    + df.loc[i, 'Versorgung fällig']
-                    - df.loc[i - 1, 'Tatsächliches Kassenvermögen']
-                    - df.loc[i, 'Darlehenszinsen']
-            ) > 0:
-                df.loc[i, 'Zulässige Dotierung'] = zulässige_dotierung_candidate
+        if dotierung == 'am Anfang':
+            if (df.loc[i - 1, 'Tatsächliches Kassenvermögen'] + df.loc[i, 'Darlehenszinsen'] + (remaining_kapital_bei_ablauf / 10) * 0.25) <= df.loc[i, 'Zulässiges Kassenvemögen']:
+                df.loc[i, 'Zulässige Dotierung'] = (remaining_kapital_bei_ablauf / 10) * 0.25
             else:
-                df.loc[i, 'Zulässige Dotierung'] = 0
+                if (df.loc[i, 'Zulässiges Kassenvemögen'] + df.loc[i, 'Versorgung fällig'] - df.loc[i - 1, 'Tatsächliches Kassenvermögen'] - df.loc[i, 'Darlehenszinsen']) > 0:
+                    df.loc[i, 'Zulässige Dotierung'] = zulässige_dotierung_candidate
+                else:
+                    df.loc[i, 'Zulässige Dotierung'] = 0
+        else:
+            df.loc[i, 'Zulässige Dotierung'] = 0
 
         df.loc[i, 'Darlehensänderung'] = (
                 df.loc[i, 'Zulässige Dotierung']
