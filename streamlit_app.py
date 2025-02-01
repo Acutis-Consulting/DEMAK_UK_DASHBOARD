@@ -865,46 +865,84 @@ col1, col2, col3, col4, col5 = st.columns(5)
 
 if show_eigenkapital_quote:
     #col1.markdown(custom_metric_html.format(label="Eigenkapitalquote", value=format_german(eigenkapital_quote_1)),unsafe_allow_html=True)
-    col1.markdown(custom_metric_html.format(label="Eigenkapital", value=format_german(eigenkapital)),unsafe_allow_html=True)
+    col1.markdown(custom_metric_html_with_change.format(
+        label="Eigenkapital",
+        value=format_german(eigenkapital),
+        change=to_percentage(eigenkapital_quote_1),
+        change_color=get_change_color(eigenkapital_quote_1)),
+        unsafe_allow_html=True)
+
 if show_intensitaet_langfristiges_kapital:
-    col1.markdown(custom_metric_html.format(label="Intensität langfristigen Kapitals",
-                                            value=to_percentage(intensitaet_langfristiges_kapital_1)),
-                  unsafe_allow_html=True)
+    col1.markdown(custom_metric_html_with_change.format(
+        label="Intensität langfristigen Kapitals",
+        value=to_percentage(intensitaet_langfristiges_kapital_1),
+        change=to_percentage(intensitaet_langfristiges_kapital_1),
+        change_color="transparent"),
+        unsafe_allow_html=True)
+
 if show_liquiditaet_1_grades:
-    col2.markdown(custom_metric_html.format(label="Liquidität 1. Grades",
-                                            #value=to_percentage(liquiditaet_1_grades_1)),
-                                            value=format_german(zahlungsmittel)),
-                  unsafe_allow_html=True)
+    col2.markdown(custom_metric_html_with_change.format(
+        label="Liquidität 1. Grades",
+        value=format_german(zahlungsmittel),
+        change=to_percentage(liquiditaet_1_grades_1),
+        change_color=get_change_color(liquiditaet_1_grades_1)),
+        unsafe_allow_html=True)
+
 if show_anspannungsgrad:
-    col2.markdown(custom_metric_html.format(label="Anspannungsgrad",
-                                            value=to_percentage(anspannungsgrad_1)),
-                  unsafe_allow_html=True)
+    col2.markdown(custom_metric_html_with_change.format(
+        label="Anspannungsgrad",
+        value=to_percentage(anspannungsgrad_1),
+        change=to_percentage(anspannungsgrad_1),
+        change_color="transparent"),
+        unsafe_allow_html=True)
+
 if show_liquiditaet_2_grades:
-    col3.markdown(custom_metric_html.format(label="Liquidität 2. Grades",
-                                            #value=to_percentage(liquiditaet_2_grades_1)),
-                                            value=format_german(zahlungsmittel + kurzfristige_forderungen)),
-                  unsafe_allow_html=True)
+    col3.markdown(custom_metric_html_with_change.format(
+        label="Liquidität 2. Grades",
+        value=format_german(zahlungsmittel + kurzfristige_forderungen),
+        change=to_percentage(liquiditaet_2_grades_1),
+        change_color=get_change_color(liquiditaet_1_grades_1)),
+        unsafe_allow_html=True)
+
 if show_statischer_verschuldungsgrad:
-    col3.markdown(custom_metric_html.format(label="Statischer Verschuldungsgrad",
-                                            value=to_percentage(statischer_verschuldungsgrad_1)),
-                  unsafe_allow_html=True)
+    col3.markdown(custom_metric_html_with_change.format(
+        label="Statischer Verschuldungsgrad",
+        value=to_percentage(statischer_verschuldungsgrad_1),
+        change=to_percentage(statischer_verschuldungsgrad_1),
+        change_color="transparent"),
+        unsafe_allow_html=True)
+
 if show_liquiditaet_3_grades:
-    col4.markdown(custom_metric_html.format(label="Liquidität 3. Grades",
-                                            #value=to_percentage(liquiditaet_3_grades_1)),
-                                            value=format_german(zahlungsmittel + kurzfristige_forderungen + vorraete)),
-                  unsafe_allow_html=True)
+    col4.markdown(custom_metric_html_with_change.format(
+        label="Liquidität 3. Grades",
+        value=format_german(zahlungsmittel + kurzfristige_forderungen + vorraete),
+        change=to_percentage(liquiditaet_3_grades_1),
+        change_color=get_change_color(liquiditaet_3_grades_1)),
+        unsafe_allow_html=True)
+
 if show_deckungsgrad_a:
-    col4.markdown(custom_metric_html.format(label="Deckungsgrad A",
-                                            value=to_percentage(deckungsgrad_a_1)),
-                  unsafe_allow_html=True)
+    col4.markdown(custom_metric_html_with_change.format(
+        label="Deckungsgrad A",
+        value=to_percentage(deckungsgrad_a_1),
+        change=to_percentage(deckungsgrad_a_1),
+        change_color="transparent"),
+        unsafe_allow_html=True)
+
 if show_net_working_capital:
-    col5.markdown(custom_metric_html.format(label="Net Working Capital",
-                                            value=format_german(net_working_capital_1)),
-                  unsafe_allow_html=True)
+    col5.markdown(custom_metric_html_with_change.format(
+        label="Net Working Capital",
+        value=to_percentage(net_working_capital_1),
+        change=to_percentage(net_working_capital_1),
+        change_color="transparent"),
+        unsafe_allow_html=True)
+
 if show_deckungsgrad_b:
-    col5.markdown(custom_metric_html.format(label="Deckungsgrad B",
-                                            value=to_percentage(deckungsgrad_b_1)),
-                  unsafe_allow_html=True)
+    col5.markdown(custom_metric_html_with_change.format(
+        label="Deckungsgrad B",
+        value=to_percentage(deckungsgrad_b_1),
+        change=to_percentage(deckungsgrad_b_1),
+        change_color="transparent"),
+        unsafe_allow_html=True)
 
 if bilanzverlaengerung_j_n == 'ja':
     bilanzverlängerung_txt = 'bei'
@@ -933,8 +971,8 @@ anlagevermoegen_2 = anlagevermoegen
 vorraete_2 = vorraete
 kurzfristige_forderungen_2 = kurzfristige_forderungen
 
-if bilanzverlaengerung_j_n == 'ja' and (len(st.session_state['groups']) != 0):
-    zahlungsmittel_2 = df.loc[bilanz_nach_jahren, 'Anlage Liquidität 1'] + zahlungsmittel
+if bilanzverlaengerung_j_n == 'ja':
+    zahlungsmittel_2 = df.loc[bilanz_nach_jahren-1, 'Anlage Liquidität 1'] + zahlungsmittel
 elif bilanzverlaengerung_j_n == 'nein':
     zahlungsmittel_2 = zahlungsmittel
 else:
@@ -1038,29 +1076,85 @@ if show_previous_balance_sheet == "ja":
     st.title("Finanzwirtschaftliche Bilanzkennzahlen Eröffnungsbilanz")
     col1, col2, col3, col4, col5 = st.columns(5)
     if show_eigenkapital_quote:
-        #col1.markdown(custom_metric_html.format(label="Eigenkapitalquote", value=to_percentage(eigenkapital_quote_1)), unsafe_allow_html=True)
-        col1.markdown(custom_metric_html.format(label="Eigenkapital", value=format_german(eigenkapital)), unsafe_allow_html=True)
+        #col1.markdown(custom_metric_html.format(label="Eigenkapitalquote", value=format_german(eigenkapital_quote_1)),unsafe_allow_html=True)
+        col1.markdown(custom_metric_html_with_change.format(
+            label="Eigenkapital",
+            value=format_german(eigenkapital),
+            change=to_percentage(eigenkapital_quote_1),
+            change_color=get_change_color(eigenkapital_quote_1)),
+            unsafe_allow_html=True)
+
     if show_intensitaet_langfristiges_kapital:
-        col1.markdown(custom_metric_html.format(label="Intensität langfristigen Kapitals", value=to_percentage(intensitaet_langfristiges_kapital_1)), unsafe_allow_html=True)
+        col1.markdown(custom_metric_html_with_change.format(
+            label="Intensität langfristigen Kapitals",
+            value=to_percentage(intensitaet_langfristiges_kapital_1),
+            change=to_percentage(intensitaet_langfristiges_kapital_1),
+            change_color="transparent"),
+            unsafe_allow_html=True)
+
     if show_liquiditaet_1_grades:
-        #col2.markdown(custom_metric_html.format(label="Liquidität 1. Grades", value=to_percentage(liquiditaet_1_grades_1)), unsafe_allow_html=True)
-        col2.markdown(custom_metric_html.format(label="Liquidität 1. Grades", value=format_german(zahlungsmittel)), unsafe_allow_html=True)
+        col2.markdown(custom_metric_html_with_change.format(
+            label="Liquidität 1. Grades",
+            value=format_german(zahlungsmittel),
+            change=to_percentage(liquiditaet_1_grades_1),
+            change_color=get_change_color(liquiditaet_1_grades_1)),
+            unsafe_allow_html=True)
+
     if show_anspannungsgrad:
-        col2.markdown(custom_metric_html.format(label="Anspannungsgrad", value=to_percentage(anspannungsgrad_1)), unsafe_allow_html=True)
+        col2.markdown(custom_metric_html_with_change.format(
+            label="Anspannungsgrad",
+            value=to_percentage(anspannungsgrad_1),
+            change=to_percentage(anspannungsgrad_1),
+            change_color="transparent"),
+            unsafe_allow_html=True)
+
     if show_liquiditaet_2_grades:
-        #col3.markdown(custom_metric_html.format(label="Liquidität 2. Grades", value=to_percentage(liquiditaet_2_grades_1)), unsafe_allow_html=True)
-        col3.markdown(custom_metric_html.format(label="Liquidität 2. Grades", value=format_german(zahlungsmittel_2 + kurzfristige_forderungen_2)), unsafe_allow_html=True)
+        col3.markdown(custom_metric_html_with_change.format(
+            label="Liquidität 2. Grades",
+            value=format_german(zahlungsmittel + kurzfristige_forderungen),
+            change=to_percentage(liquiditaet_2_grades_1),
+            change_color=get_change_color(liquiditaet_1_grades_1)),
+            unsafe_allow_html=True)
+
     if show_statischer_verschuldungsgrad:
-        col3.markdown(custom_metric_html.format(label="Statischer Verschuldungsgrad", value=to_percentage(statischer_verschuldungsgrad_1)), unsafe_allow_html=True)
+        col3.markdown(custom_metric_html_with_change.format(
+            label="Statischer Verschuldungsgrad",
+            value=to_percentage(statischer_verschuldungsgrad_1),
+            change=to_percentage(statischer_verschuldungsgrad_1),
+            change_color="transparent"),
+            unsafe_allow_html=True)
+
     if show_liquiditaet_3_grades:
-        #col4.markdown(custom_metric_html.format(label="Liquidität 3. Grades", value=to_percentage(liquiditaet_3_grades_1)), unsafe_allow_html=True)
-        col4.markdown(custom_metric_html.format(label="Liquidität 3. Grades", value=format_german(zahlungsmittel_2 + kurzfristige_forderungen_2 + vorraete_2)), unsafe_allow_html=True)
+        col4.markdown(custom_metric_html_with_change.format(
+            label="Liquidität 3. Grades",
+            value=format_german(zahlungsmittel + kurzfristige_forderungen + vorraete),
+            change=to_percentage(liquiditaet_3_grades_1),
+            change_color=get_change_color(liquiditaet_3_grades_1)),
+            unsafe_allow_html=True)
+
     if show_deckungsgrad_a:
-        col4.markdown(custom_metric_html.format(label="Deckungsgrad A", value=to_percentage(deckungsgrad_a_1)), unsafe_allow_html=True)
+        col4.markdown(custom_metric_html_with_change.format(
+            label="Deckungsgrad A",
+            value=to_percentage(deckungsgrad_a_1),
+            change=to_percentage(deckungsgrad_a_1),
+            change_color="transparent"),
+            unsafe_allow_html=True)
+
     if show_net_working_capital:
-        col5.markdown(custom_metric_html.format(label="Net Working Capital", value=format_german(net_working_capital_1)), unsafe_allow_html=True)
+        col5.markdown(custom_metric_html_with_change.format(
+            label="Net Working Capital",
+            value=to_percentage(net_working_capital_1),
+            change=to_percentage(net_working_capital_1),
+            change_color="transparent"),
+            unsafe_allow_html=True)
+
     if show_deckungsgrad_b:
-        col5.markdown(custom_metric_html.format(label="Deckungsgrad B", value=to_percentage(deckungsgrad_b_1)), unsafe_allow_html=True)
+        col5.markdown(custom_metric_html_with_change.format(
+            label="Deckungsgrad B",
+            value=to_percentage(deckungsgrad_b_1),
+            change=to_percentage(deckungsgrad_b_1),
+            change_color="transparent"),
+            unsafe_allow_html=True)
 
 st.title("   ")
 st.title("Finanzwirtschaftliche Bilanzkennzahlen im Jahr "+ f"{bilanz_nach_jahren}")
