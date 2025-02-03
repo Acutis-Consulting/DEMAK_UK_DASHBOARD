@@ -931,7 +931,7 @@ if show_deckungsgrad_a:
 if show_net_working_capital:
     col5.markdown(custom_metric_html_with_change.format(
         label="Net Working Capital",
-        value=to_percentage(net_working_capital_1),
+        value=format_german(net_working_capital_1),
         change=to_percentage(net_working_capital_1),
         change_color="transparent"),
         unsafe_allow_html=True)
@@ -1143,7 +1143,7 @@ if show_previous_balance_sheet == "ja":
     if show_net_working_capital:
         col5.markdown(custom_metric_html_with_change.format(
             label="Net Working Capital",
-            value=to_percentage(net_working_capital_1),
+            value=format_german(net_working_capital_1),
             change=to_percentage(net_working_capital_1),
             change_color="transparent"),
             unsafe_allow_html=True)
