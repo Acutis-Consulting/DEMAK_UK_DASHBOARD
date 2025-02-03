@@ -959,7 +959,7 @@ st.title("Musterbilanz im Jahr "
 
 aktiva, passiva = st.columns(2)
 with aktiva:
-    st.header("Aktiva")
+    st.header("Aktiva ")
 with passiva:
     st.header("Passiva")
 
