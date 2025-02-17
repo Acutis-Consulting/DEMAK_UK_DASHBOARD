@@ -127,39 +127,38 @@ def get_change_color(change_value):
 st.sidebar.header('DEMAK Dashboard `Version 2`')
 st.sidebar.title('Simulationsparameter')
 
-# Initialize groups
 if 'groups' not in st.session_state:
     st.session_state['groups'] = []
 
-# File Uploader to Load Parameters
 uploaded_file = st.sidebar.file_uploader("Parameter Hochladen", type=["json"])
 
 if uploaded_file and 'uploaded_data_loaded' not in st.session_state:
-    # Reading the uploaded JSON file
     uploaded_data = json.load(uploaded_file)
-    # Load groups
-    if 'groups' in uploaded_data:
-        st.session_state['groups'] = uploaded_data['groups']
-    else:
-        st.warning("Die hochgeladene Datei enthält keine Gruppendaten.")
 
-    # Load other parameters
-    st.session_state['darlehenszins'] = uploaded_data.get('darlehenszins', 0.075)
-    st.session_state['psv_beitragssatz'] = uploaded_data.get('psv_beitragssatz', 0.0025)
-    st.session_state['uk_verwaltung_jaehrlich_pro_an'] = uploaded_data.get('uk_verwaltung_jaehrlich_pro_an', 89)
-    st.session_state['uk_verwaltung_einmalig_im_ersten_jahr'] = uploaded_data.get('uk_verwaltung_einmalig_im_ersten_jahr', 0.02)
-    st.session_state['p1_anlage_liq'] = uploaded_data.get('p1_anlage_liq', 0.0)
-    st.session_state['beitragsbemessungsgrenze'] = uploaded_data.get('beitragsbemessungsgrenze', 7300)
+    required_fields = {
+        "groups": [],
+        "darlehenszins": 0.075,
+        "psv_beitragssatz": 0.0025,
+        "uk_verwaltung_jaehrlich_pro_an": 89,
+        "uk_verwaltung_einmalig_im_ersten_jahr": 0.02,
+        "p1_anlage_liq": 0.0,
+        "beitragsbemessungsgrenze": 7300,
+        "Anlagevermögen": 0,
+        "Vorräte": 0,
+        "Kurzfristige Forderungen": 0,
+        "Zahlungsmittel": 0,
+        "kurzfristig (FK kurzfr.)": 0,
+        "langfristig (FK langfr.)": 0,
+        "kreditzins": 0.08,
+        "dotierung": "am Anfang"
+    }
 
-    # Balance sheet parameters
-    st.session_state['Anlagevermögen'] = uploaded_data.get('Anlagevermögen', 0)
-    st.session_state['Vorräte'] = uploaded_data.get('Vorräte', 0)
-    st.session_state['Kurzfristige Forderungen'] = uploaded_data.get('Kurzfristige Forderungen', 0)
-    st.session_state['Zahlungsmittel'] = uploaded_data.get('Zahlungsmittel', 0)
-    st.session_state['kurzfristig (FK kurzfr.)'] = uploaded_data.get('kurzfristig (FK kurzfr.)', 0)
-    st.session_state['langfristig (FK langfr.)'] = uploaded_data.get('langfristig (FK langfr.)', 0)
-    st.session_state['kreditzins'] = uploaded_data.get('kreditzins', 0.08)
-    st.session_state['dotierung'] = uploaded_data.get('dotierung', 'am Anfang')
+    missing_fields = [key for key in required_fields if key not in uploaded_data]
+    if missing_fields:
+        st.warning("Die hochgeladene Datei enthält nicht alle erforderlichen Felder. Fehlende Felder: " + ", ".join(missing_fields))
+
+    for key, default_value in required_fields.items():
+        st.session_state[key] = uploaded_data.get(key, default_value)
 
     st.session_state['uploaded_data_loaded'] = True
 
